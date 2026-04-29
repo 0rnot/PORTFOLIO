@@ -269,7 +269,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
             {Math.round(aggregatedData.totalValue).toLocaleString()}
           </div>
           <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: (aggregatedData.totalValue - aggregatedData.totalInvested) >= 0 ? 'var(--ba-green)' : 'var(--ba-red)', marginTop: '10px' }}>
-            含み益合計: {(aggregatedData.totalValue - aggregatedData.totalInvested) >= 0 ? '+' : ''}¥ {Math.round(aggregatedData.totalValue - aggregatedData.totalInvested).toLocaleString()}
+            含み益合計: {(aggregatedData.totalValue - aggregatedData.totalInvested) >= 0 ? '+' : ''}¥ {Math.round(aggregatedData.totalValue - aggregatedData.totalInvested).toLocaleString()} ({aggregatedData.totalInvested > 0 ? ((aggregatedData.totalValue - aggregatedData.totalInvested) / aggregatedData.totalInvested * 100).toFixed(2) : '0.00'}%)
           </div>
         </div>
         
@@ -370,7 +370,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                         ¥ {Math.round(currentValue).toLocaleString()}
                       </div>
                       <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: (currentValue - Number(item.investedPrincipal)) >= 0 ? 'var(--ba-green)' : 'var(--ba-red)' }}>
-                        {(currentValue - Number(item.investedPrincipal)) >= 0 ? '+' : ''}¥ {Math.round(currentValue - Number(item.investedPrincipal)).toLocaleString()}
+                        {(currentValue - Number(item.investedPrincipal)) >= 0 ? '+' : ''}¥ {Math.round(currentValue - Number(item.investedPrincipal)).toLocaleString()} ({Number(item.investedPrincipal) > 0 ? ((currentValue - Number(item.investedPrincipal)) / Number(item.investedPrincipal) * 100).toFixed(2) : '0.00'}%)
                       </div>
                     </div>
                   </div>
