@@ -98,9 +98,9 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
     const q = Number(quantity) || 0;
     const rate = rateOverride || Number(exchangeRate) || 158;
     const price = priceOverride !== undefined ? priceOverride : unit.power;
-    // 投資信託の場合は jpyFundMultiplier で円換算済みの power になっているが、シミュレーションのため為替変動を掛ける
+    // 投資信託の場合は jpyFundMultiplier で既に円建ての基準価額になっているため、為替変動は不要
     if (unit.type === 'fund') {
-      return ((price * q) / 10000) * (rate / 158);
+      return (price * q) / 10000;
     }
     // 個別株・仮想通貨などはドル建てなので為替レートをかける
     return price * q * rate;
