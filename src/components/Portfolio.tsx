@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { UnitData, PortfolioItem, Composition } from '../types';
+import { UnitData, PortfolioItem } from '../types';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, PieChart, Pie, Cell, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { Plus, Trash2, Calculator, PieChart as PieChartIcon, Activity, TrendingUp, TrendingDown } from 'lucide-react';
+import { Plus, Trash2, Activity, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface PortfolioProps {
   units: UnitData[];
@@ -393,7 +393,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                   data={aggregatedData.items.map(i => ({ name: i.unit.ticker, value: i.value }))}
                   cx="50%" cy="50%" innerRadius="50%" outerRadius="80%" paddingAngle={2} dataKey="value" stroke="none"
                 >
-                  {aggregatedData.items.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                  {aggregatedData.items.map((_, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                 </Pie>
                 <Tooltip formatter={(value: number) => `¥${Math.round(value).toLocaleString()}`} contentStyle={{ background: 'var(--ba-surface)', border: 'none', borderRadius: '8px', color: 'white' }} />
               </PieChart>

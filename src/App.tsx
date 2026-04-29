@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Routes, Route, useLocation, Link } from 'react-router-dom';
 import { UnitData, HistoryData } from './types';
 import { MOCK_UNITS } from './mockData';
