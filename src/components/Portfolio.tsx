@@ -261,21 +261,21 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
     <div style={{ padding: '0 20px', maxWidth: '1800px', margin: '0 auto' }}>
       
       {/* ページ最上部: 全体評価額と含み益 */}
-      <div className="glass-panel" style={{ padding: '30px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="glass-panel" style={{ padding: '20px', marginBottom: '20px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '15px' }}>
         <div>
           <h3 className="text-white" style={{ marginBottom: '10px', fontSize: '1.2rem', whiteSpace: 'nowrap' }}>TOTAL CURRENT POWER (現在評価額)</h3>
-          <div className="text-cyan skew-text" style={{ fontSize: '3.5rem', fontWeight: 900, display: 'flex', alignItems: 'baseline', gap: '5px', lineHeight: '1' }}>
+          <div className="text-cyan skew-text" style={{ fontSize: 'clamp(1.8rem, 5vw, 3.5rem)', fontWeight: 900, display: 'flex', alignItems: 'baseline', gap: '5px', lineHeight: '1' }}>
             <span style={{ fontSize: '2rem' }}>¥</span> 
             {Math.round(aggregatedData.totalValue).toLocaleString()}
           </div>
-          <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: (aggregatedData.totalValue - aggregatedData.totalInvested) >= 0 ? 'var(--ba-green)' : 'var(--ba-red)', marginTop: '10px' }}>
+          <div style={{ fontSize: 'clamp(0.75rem, 2vw, 1.2rem)', fontWeight: 'bold', color: (aggregatedData.totalValue - aggregatedData.totalInvested) >= 0 ? 'var(--ba-green)' : 'var(--ba-red)', marginTop: '10px' }}>
             含み益合計: {(aggregatedData.totalValue - aggregatedData.totalInvested) >= 0 ? '+' : ''}¥ {Math.round(aggregatedData.totalValue - aggregatedData.totalInvested).toLocaleString()} ({aggregatedData.totalInvested > 0 ? ((aggregatedData.totalValue - aggregatedData.totalInvested) / aggregatedData.totalInvested * 100).toFixed(2) : '0.00'}%)
           </div>
         </div>
         
         {/* 1D Portfolio Graph */}
         {portfolioHistory1D.length > 0 ? (
-          <div style={{ flex: 1, maxWidth: '500px', height: '140px', marginLeft: '40px' }}>
+          <div style={{ flex: 1, minWidth: '200px', maxWidth: '500px', height: '140px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={portfolioHistory1D}>
                 <defs>
@@ -334,12 +334,12 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
             const accentColor = unit.type === 'stock' ? '#22c55e' : unit.type === 'fund' ? 'var(--ba-cyan)' : '#f59e0b';
 
             return (
-              <div key={index} style={{ padding: '15px 20px', borderRadius: '8px', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', gap: '20px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--ba-border)' }}>
+              <div key={index} style={{ padding: '15px', borderRadius: '8px', position: 'relative', overflow: 'hidden', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '15px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--ba-border)' }}>
                 {/* アクセントカラーの左縁 */}
                 <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '4px', background: accentColor }}></div>
                 
                 {/* 左側: ヘッダー＆ステータス */}
-                <div style={{ flex: '0 0 320px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ flex: '1 1 280px', minWidth: '0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {/* ヘッダー */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
                     <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
@@ -377,7 +377,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                 </div>
                 
                 {/* 入力フォーム */}
-                <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px' }}>
+                <div style={{ flex: '1 1 250px', minWidth: '0', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '10px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <span style={{ fontSize: '0.7rem', color: 'var(--ba-text-sub)', marginBottom: '4px', whiteSpace: 'nowrap' }}>{unit.type === 'fund' ? '口数' : '数量'}</span>
                     <input 
@@ -422,7 +422,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
       </div>
 
       {/* アナリティクス行 (4カラムグリッド) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '15px', marginBottom: '20px' }}>
         
         {/* レーダーチャート */}
         <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -530,7 +530,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
 
       {/* 下段: 未来予測シミュレーター */}
       <div className="glass-panel" style={{ padding: '20px', marginBottom: '40px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '10px' }}>
           <h3 className="text-blue-dark skew-text" style={{ fontSize: '1.5rem', borderLeft: '4px solid #22c55e', paddingLeft: '10px' }}>
             FUTURE PROJECTION (資産推移シミュレーション)
           </h3>
@@ -548,7 +548,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '30px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
           <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
             <div style={{ background: 'var(--ba-surface)', padding: '20px', borderRadius: '8px', border: '1px solid var(--ba-border)' }}>
               <div style={{ fontSize: '0.9rem', color: 'var(--ba-text-sub)', marginBottom: '5px' }}>最終予想評価額 ({simYears}年後)</div>

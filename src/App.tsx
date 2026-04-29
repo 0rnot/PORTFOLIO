@@ -162,9 +162,9 @@ function App() {
     <div>
       <header className="ba-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
         <h1 className="ba-header-title">{getPageTitle()}</h1>
-        <nav style={{ display: 'flex', gap: '20px' }}>
-          <Link to="/" className="text-white" style={{ fontWeight: 'bold' }}>DASHBOARD</Link>
-          <Link to="/portfolio" className="text-white" style={{ fontWeight: 'bold' }}>PORTFOLIO (編成)</Link>
+        <nav style={{ display: 'flex', gap: '12px', flexShrink: 0 }}>
+          <Link to="/" className="text-white" style={{ fontWeight: 'bold', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>DASHBOARD</Link>
+          <Link to="/portfolio" className="text-white" style={{ fontWeight: 'bold', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>PORTFOLIO</Link>
         </nav>
       </header>
       <main className="main-content">
