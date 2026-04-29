@@ -181,8 +181,9 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
         const expectedAnnualReturn = Number(item.item.expectedAnnualReturn) || 0;
         const initialValue = item.value;
         
-        // 投資元本: 初期評価額 + (毎月積立額 × 経過月数)
-        const principal = initialValue + (monthlyAddition * months);
+        // 投資元本: 過去の投資元本 + (毎月積立額 × 経過月数)
+        const baseInvested = Number(item.item.investedPrincipal) || 0;
+        const principal = baseInvested + (monthlyAddition * months);
         yearPrincipal += principal;
 
         // 想定年利から月利を算出
