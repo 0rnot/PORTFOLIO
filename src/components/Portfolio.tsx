@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { UnitData, PortfolioItem } from '../types';
+import { fetchCurrentPrices } from '../api';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, PieChart, Pie, Cell, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Plus, Trash2, Activity, TrendingUp, TrendingDown } from 'lucide-react';
 
@@ -36,6 +37,19 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
   const [exchangeRate, setExchangeRate] = useState<number>(158);
   const [simYears, setSimYears] = useState<number>(20);
 
+  // 初回および定期的にリアルタイム為替レートを取得
+  useEffect(() => {
+    const fetchRate = async () => {
+      const prices = await fetchCurrentPrices(['JPY=X']);
+      if (prices['JPY=X']) {
+        setBaseExchangeRate(prices['JPY=X']);
+      }
+    };
+    fetchRate();
+    const interval = setInterval(fetchRate, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   // 保存処理
   useEffect(() => {
     localStorage.setItem('portfolioData', JSON.stringify(portfolio));
@@ -50,7 +64,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
     const interval = setInterval(() => {
       setExchangeRate(prev => {
         const change = baseExchangeRate * 0.0005 * (Math.random() - 0.5);
-        return Number((prev + change).toFixed(3));
+        return Number((baseExchangeRate + change).toFixed(3));
       });
     }, 2000);
     return () => clearInterval(interval);
@@ -80,15 +94,16 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
   };
 
   // 評価額の計算
-  const calcUnitValue = (unit: UnitData, quantity: number | string) => {
+  const calcUnitValue = (unit: UnitData, quantity: number | string, priceOverride?: number, rateOverride?: number) => {
     const q = Number(quantity) || 0;
-    const rate = Number(exchangeRate) || 158;
+    const rate = rateOverride || Number(exchangeRate) || 158;
+    const price = priceOverride !== undefined ? priceOverride : unit.power;
     // 投資信託の場合は jpyFundMultiplier で円換算済みの power になっているが、シミュレーションのため為替変動を掛ける
     if (unit.type === 'fund') {
-      return ((unit.power * q) / 10000) * (rate / 158);
+      return ((price * q) / 10000) * (rate / 158);
     }
     // 個別株・仮想通貨などはドル建てなので為替レートをかける
-    return unit.power * q * rate;
+    return price * q * rate;
   };
 
   // データ集計 (メモ化してパフォーマンス最適化)
@@ -167,6 +182,32 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
     };
   }, [portfolio, units, exchangeRate]);
 
+  // portfolio全体の1D履歴を生成
+  const portfolioHistory1D = useMemo(() => {
+    const timeMap = new Map<string, number>();
+    
+    portfolio.forEach(item => {
+      const unit = units.find(u => u.id === item.unitId);
+      if (unit && unit.history['1D']) {
+        unit.history['1D'].forEach(pt => {
+          const val = calcUnitValue(unit, item.quantity, pt.close, baseExchangeRate);
+          const timeKey = String(pt.time);
+          timeMap.set(timeKey, (timeMap.get(timeKey) || 0) + val);
+        });
+      }
+    });
+
+    return Array.from(timeMap.entries())
+      .sort((a, b) => Number(a[0]) - Number(b[0]))
+      .map(([time, value]) => {
+        const d = new Date(Number(time) * 1000);
+        return { 
+          time: isNaN(d.getTime()) ? time : `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`, 
+          value: Math.round(value) 
+        };
+      });
+  }, [portfolio, units, baseExchangeRate]);
+
   // 複利シミュレーションデータの生成 (金融庁等の標準シミュレーターに準拠した月次複利・毎月積立方式)
   const simulationData = useMemo(() => {
     const data = [];
@@ -231,7 +272,33 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
             含み益合計: {(aggregatedData.totalValue - aggregatedData.totalInvested) >= 0 ? '+' : ''}¥ {Math.round(aggregatedData.totalValue - aggregatedData.totalInvested).toLocaleString()}
           </div>
         </div>
-        <Activity size={80} color="var(--ba-cyan)" opacity={0.2} style={{ flexShrink: 0 }} />
+        </div>
+        
+        {/* 1D Portfolio Graph */}
+        {portfolioHistory1D.length > 0 ? (
+          <div style={{ flex: 1, maxWidth: '500px', height: '140px', marginLeft: '40px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={portfolioHistory1D}>
+                <defs>
+                  <linearGradient id="color1D" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.5}/>
+                    <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <YAxis domain={['dataMin', 'dataMax']} hide />
+                <Tooltip 
+                  formatter={(value: number) => `¥${value.toLocaleString()}`}
+                  labelStyle={{ display: 'none' }}
+                  contentStyle={{ background: 'rgba(0,0,0,0.8)', border: '1px solid var(--ba-cyan)', borderRadius: '4px', color: 'white' }} 
+                />
+                <Area type="monotone" dataKey="value" stroke="var(--ba-cyan)" strokeWidth={2} fillOpacity={1} fill="url(#color1D)" isAnimationActive={false} />
+              </AreaChart>
+            </ResponsiveContainer>
+            <div style={{ textAlign: 'right', color: 'var(--ba-text-sub)', fontSize: '0.8rem', marginTop: '5px' }}>1-Day Asset Movement</div>
+          </div>
+        ) : (
+          <Activity size={80} color="var(--ba-cyan)" opacity={0.2} style={{ flexShrink: 0 }} />
+        )}
       </div>
 
       {/* UNIT SETUP */}
