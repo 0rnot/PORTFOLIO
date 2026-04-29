@@ -27,8 +27,8 @@ const generateHistory = (base: number, points: number, volatility: number): Hist
   return data;
 };
 
-// Google Favicon APIを利用して、各銘柄ごとに固有の高品質なロゴ画像を取得する（アドブロック回避で確実）
-const getLogo = (domain: string) => `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+// Clearbit Logo API で高品質ロゴを取得（200pxの鮮明なPNG）
+const getLogo = (domain: string) => `https://logo.clearbit.com/${domain}?size=200`;
 
 const createUnit = (
   id: string, type: 'fund'|'stock'|'crypto'|'commodity', name: string, ticker: string, 
@@ -67,7 +67,7 @@ const COMMODITY_GEO = [{ id: 'global', name: 'Global Commodity', ticker: 'GLOBAL
 
 // 主要投資信託
 const funds = [
-  createUnit('sp500', 'fund', 'eMAXIS Slim S&P 500 相当', '^GSPC', 5200, 85, 70, 95, 40, 'S', getLogo('mufg.jp'), 7.0, [
+  createUnit('sp500', 'fund', 'eMAXIS Slim S&P 500 相当', '^GSPC', 5200, 85, 70, 95, 40, 'S', getLogo('am.mufg.jp'), 7.0, [
     { id: 'msft', name: 'Microsoft Corp.', ticker: 'MSFT', weight: 7.1, color: '#3b82f6' },
     { id: 'aapl', name: 'Apple Inc.', ticker: 'AAPL', weight: 6.5, color: '#0ea5e9' },
     { id: 'nvda', name: 'NVIDIA Corp.', ticker: 'NVDA', weight: 4.8, color: '#22c55e' },
@@ -79,14 +79,14 @@ const funds = [
     { id: 'avgo', name: 'Broadcom', ticker: 'AVGO', weight: 1.3, color: '#3b82f6' },
     { id: 'tsla', name: 'Tesla Inc.', ticker: 'TSLA', weight: 1.2, color: '#ef4444' },
   ], US_COUNTRY, 5.881), // ユーザーの保有資産(1,977,212円 / 470,978口)に合わせて基準価額がピタリと一致するよう係数を調整
-  createUnit('ndq100', 'fund', 'eMAXIS NASDAQ100 相当', '^NDX', 18000, 98, 45, 80, 10, 'S', getLogo('mufg.jp'), 10.0, [
+  createUnit('ndq100', 'fund', 'eMAXIS NASDAQ100 相当', '^NDX', 18000, 98, 45, 80, 10, 'S', getLogo('am.mufg.jp'), 10.0, [
     { id: 'msft', name: 'Microsoft Corp.', ticker: 'MSFT', weight: 8.9, color: '#3b82f6' },
     { id: 'aapl', name: 'Apple Inc.', ticker: 'AAPL', weight: 8.7, color: '#0ea5e9' },
     { id: 'nvda', name: 'NVIDIA Corp.', ticker: 'NVDA', weight: 4.8, color: '#22c55e' },
     { id: 'amzn', name: 'Amazon.com Inc.', ticker: 'AMZN', weight: 4.4, color: '#f59e0b' },
     { id: 'meta', name: 'Meta Platforms', ticker: 'META', weight: 4.1, color: '#8b5cf6' },
   ], US_COUNTRY, 1.206), // ユーザーの保有資産(1,750,476円 / 536,923口)に合わせて基準価額がピタリと一致するよう係数を調整
-  createUnit('acwi', 'fund', 'eMAXIS Slim 全世界株式 相当', 'URTH', 140, 60, 90, 100, 50, 'S', getLogo('mufg.jp'), 5.5, [
+  createUnit('acwi', 'fund', 'eMAXIS Slim 全世界株式 相当', 'URTH', 140, 60, 90, 100, 50, 'S', getLogo('am.mufg.jp'), 5.5, [
     { id: 'msft', name: 'Microsoft Corp.', ticker: 'MSFT', weight: 4.3, color: '#3b82f6' },
     { id: 'aapl', name: 'Apple Inc.', ticker: 'AAPL', weight: 3.8, color: '#0ea5e9' },
     { id: 'nvda', name: 'NVIDIA Corp.', ticker: 'NVDA', weight: 2.9, color: '#22c55e' },
@@ -139,11 +139,11 @@ const stocks = [
 
 // その他 (Crypto / Commodities) 10個
 const others = [
-  createUnit('btc', 'crypto', 'Bitcoin', 'BTC-USD', 65000, 120, 20, 90, 0, 'EX', 'https://cryptologos.cc/logos/bitcoin-btc-logo.png', 25.0, [], DECENTRALIZED),
-  createUnit('eth', 'crypto', 'Ethereum', 'ETH-USD', 3500, 115, 25, 95, 0, 'EX', 'https://cryptologos.cc/logos/ethereum-eth-logo.png', 30.0, [], DECENTRALIZED),
-  createUnit('sol', 'crypto', 'Solana', 'SOL-USD', 150, 125, 10, 100, 0, 'S', 'https://cryptologos.cc/logos/solana-sol-logo.png', 40.0, [], DECENTRALIZED),
-  createUnit('bnb', 'crypto', 'BNB', 'BNB-USD', 550, 100, 30, 80, 0, 'A', 'https://cryptologos.cc/logos/bnb-bnb-logo.png', 20.0, [], DECENTRALIZED),
-  createUnit('xrp', 'crypto', 'XRP', 'XRP-USD', 0.6, 90, 40, 85, 0, 'B', 'https://cryptologos.cc/logos/xrp-xrp-logo.png', 15.0, [], DECENTRALIZED),
+  createUnit('btc', 'crypto', 'Bitcoin', 'BTC-USD', 65000, 120, 20, 90, 0, 'EX', 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png', 25.0, [], DECENTRALIZED),
+  createUnit('eth', 'crypto', 'Ethereum', 'ETH-USD', 3500, 115, 25, 95, 0, 'EX', 'https://assets.coingecko.com/coins/images/279/large/ethereum.png', 30.0, [], DECENTRALIZED),
+  createUnit('sol', 'crypto', 'Solana', 'SOL-USD', 150, 125, 10, 100, 0, 'S', 'https://assets.coingecko.com/coins/images/4128/large/solana.png', 40.0, [], DECENTRALIZED),
+  createUnit('bnb', 'crypto', 'BNB', 'BNB-USD', 550, 100, 30, 80, 0, 'A', 'https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png', 20.0, [], DECENTRALIZED),
+  createUnit('xrp', 'crypto', 'XRP', 'XRP-USD', 0.6, 90, 40, 85, 0, 'B', 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png', 15.0, [], DECENTRALIZED),
   createUnit('gold', 'commodity', 'Gold (COMEX)', 'GC=F', 2350, 40, 120, 70, 0, 'A', 'https://images.unsplash.com/photo-1610224329745-f090ceb72352?auto=format&fit=crop&w=600&q=80', 3.0, [], COMMODITY_GEO),
   createUnit('silver', 'commodity', 'Silver (COMEX)', 'SI=F', 28, 50, 100, 80, 0, 'B', 'https://images.unsplash.com/photo-1620288627223-53302f4e8c74?auto=format&fit=crop&w=600&q=80', 4.0, [], COMMODITY_GEO),
   createUnit('oil', 'commodity', 'Crude Oil (WTI)', 'CL=F', 85, 70, 60, 70, 0, 'B', 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80', 2.0, [], COMMODITY_GEO),
