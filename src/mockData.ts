@@ -27,8 +27,8 @@ const generateHistory = (base: number, points: number, volatility: number): Hist
   return data;
 };
 
-// Clearbit Logo API で高品質ロゴを取得（200pxの鮮明なPNG）
-const getLogo = (domain: string) => `https://logo.clearbit.com/${domain}?size=200`;
+// Google FaviconV2 API で高品質ロゴを取得（従来のs2より鮮明）
+const getLogo = (domain: string) => `https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${domain}&size=128`;
 
 const createUnit = (
   id: string, type: 'fund'|'stock'|'crypto'|'commodity', name: string, ticker: string, 
@@ -139,11 +139,11 @@ const stocks = [
 
 // その他 (Crypto / Commodities) 10個
 const others = [
-  createUnit('btc', 'crypto', 'Bitcoin', 'BTC-USD', 65000, 120, 20, 90, 0, 'EX', 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png', 25.0, [], DECENTRALIZED),
-  createUnit('eth', 'crypto', 'Ethereum', 'ETH-USD', 3500, 115, 25, 95, 0, 'EX', 'https://assets.coingecko.com/coins/images/279/large/ethereum.png', 30.0, [], DECENTRALIZED),
-  createUnit('sol', 'crypto', 'Solana', 'SOL-USD', 150, 125, 10, 100, 0, 'S', 'https://assets.coingecko.com/coins/images/4128/large/solana.png', 40.0, [], DECENTRALIZED),
-  createUnit('bnb', 'crypto', 'BNB', 'BNB-USD', 550, 100, 30, 80, 0, 'A', 'https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png', 20.0, [], DECENTRALIZED),
-  createUnit('xrp', 'crypto', 'XRP', 'XRP-USD', 0.6, 90, 40, 85, 0, 'B', 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png', 15.0, [], DECENTRALIZED),
+  createUnit('btc', 'crypto', 'Bitcoin', 'BTC-USD', 65000, 120, 20, 90, 0, 'EX', 'https://cryptologos.cc/logos/bitcoin-btc-logo.png', 25.0, [], DECENTRALIZED),
+  createUnit('eth', 'crypto', 'Ethereum', 'ETH-USD', 3500, 115, 25, 95, 0, 'EX', 'https://cryptologos.cc/logos/ethereum-eth-logo.png', 30.0, [], DECENTRALIZED),
+  createUnit('sol', 'crypto', 'Solana', 'SOL-USD', 150, 125, 10, 100, 0, 'S', 'https://cryptologos.cc/logos/solana-sol-logo.png', 40.0, [], DECENTRALIZED),
+  createUnit('bnb', 'crypto', 'BNB', 'BNB-USD', 550, 100, 30, 80, 0, 'A', 'https://cryptologos.cc/logos/bnb-bnb-logo.png', 20.0, [], DECENTRALIZED),
+  createUnit('xrp', 'crypto', 'XRP', 'XRP-USD', 0.6, 90, 40, 85, 0, 'B', 'https://cryptologos.cc/logos/xrp-xrp-logo.png', 15.0, [], DECENTRALIZED),
   createUnit('gold', 'commodity', 'Gold (COMEX)', 'GC=F', 2350, 40, 120, 70, 0, 'A', 'https://images.unsplash.com/photo-1610224329745-f090ceb72352?auto=format&fit=crop&w=600&q=80', 3.0, [], COMMODITY_GEO),
   createUnit('silver', 'commodity', 'Silver (COMEX)', 'SI=F', 28, 50, 100, 80, 0, 'B', 'https://images.unsplash.com/photo-1620288627223-53302f4e8c74?auto=format&fit=crop&w=600&q=80', 4.0, [], COMMODITY_GEO),
   createUnit('oil', 'commodity', 'Crude Oil (WTI)', 'CL=F', 85, 70, 60, 70, 0, 'B', 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80', 2.0, [], COMMODITY_GEO),
