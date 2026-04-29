@@ -261,9 +261,9 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
     <div style={{ padding: '0 20px', maxWidth: '1800px', margin: '0 auto' }}>
       
       {/* ページ最上部: 全体評価額と含み益 */}
-      <div className="glass-panel" style={{ padding: '20px', marginBottom: '20px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '15px' }}>
-        <div>
-          <h3 className="text-white" style={{ marginBottom: '10px', fontSize: '1.2rem', whiteSpace: 'nowrap' }}>TOTAL CURRENT POWER (現在評価額)</h3>
+      <div className="glass-panel" style={{ padding: '20px', marginBottom: '20px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '15px', overflow: 'hidden' }}>
+        <div style={{ minWidth: '0', flex: '1 1 250px' }}>
+          <h3 className="text-white" style={{ marginBottom: '10px', fontSize: 'clamp(0.8rem, 2.5vw, 1.2rem)' }}>TOTAL CURRENT POWER (現在評価額)</h3>
           <div className="text-cyan skew-text" style={{ fontSize: 'clamp(1.8rem, 5vw, 3.5rem)', fontWeight: 900, display: 'flex', alignItems: 'baseline', gap: '5px', lineHeight: '1' }}>
             <span style={{ fontSize: '2rem' }}>¥</span> 
             {Math.round(aggregatedData.totalValue).toLocaleString()}
@@ -275,7 +275,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
         
         {/* 1D Portfolio Graph */}
         {portfolioHistory1D.length > 0 ? (
-          <div style={{ flex: 1, minWidth: '200px', maxWidth: '500px', height: '140px' }}>
+          <div style={{ flex: 1, minWidth: '200px', maxWidth: '500px', height: '120px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={portfolioHistory1D}>
                 <defs>
@@ -293,7 +293,6 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                 <Area type="monotone" dataKey="value" stroke="var(--ba-cyan)" strokeWidth={2} fillOpacity={1} fill="url(#color1D)" isAnimationActive={false} />
               </AreaChart>
             </ResponsiveContainer>
-            <div style={{ textAlign: 'right', color: 'var(--ba-text-sub)', fontSize: '0.8rem', marginTop: '5px' }}>1-Day Asset Movement</div>
           </div>
         ) : (
           <Activity size={80} color="var(--ba-cyan)" opacity={0.2} style={{ flexShrink: 0 }} />
@@ -306,17 +305,10 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
           <h3 className="text-blue-dark skew-text" style={{ fontSize: '1.2rem', borderLeft: '4px solid var(--ba-cyan)', paddingLeft: '10px' }}>
             UNIT SETUP (編成・積立設定)
           </h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span className="text-sub" style={{ fontSize: '0.8rem' }}>為替レート(USD/JPY):</span>
-            <input 
-              type="number" value={baseExchangeRate} onChange={(e) => {
-                setBaseExchangeRate(Number(e.target.value));
-                setExchangeRate(Number(e.target.value));
-              }}
-              style={{ width: '70px', padding: '4px', background: 'var(--ba-surface)', border: '1px solid var(--ba-border)', color: 'white', borderRadius: '4px' }}
-            />
-            <span style={{ color: 'var(--ba-cyan)', fontWeight: 'bold', width: '50px' }}>
-              ({(Number(exchangeRate) || 0).toFixed(2)})
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span className="text-sub" style={{ fontSize: '0.8rem' }}>USD/JPY:</span>
+            <span style={{ color: 'var(--ba-cyan)', fontWeight: 'bold', fontSize: '1rem' }}>
+              {(Number(exchangeRate) || 0).toFixed(2)}
             </span>
           </div>
         </div>
@@ -377,33 +369,33 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                 </div>
                 
                 {/* 入力フォーム */}
-                <div style={{ flex: '1 1 250px', minWidth: '0', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '10px' }}>
+                <div style={{ flex: '1 1 250px', minWidth: '0', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--ba-text-sub)', marginBottom: '4px', whiteSpace: 'nowrap' }}>{unit.type === 'fund' ? '口数' : '数量'}</span>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--ba-text-sub)', marginBottom: '3px' }}>{unit.type === 'fund' ? '口数' : '数量'}</span>
                     <input 
                       type="number" value={item.quantity} onChange={(e) => handleUpdateItem(index, 'quantity', e.target.value === '' ? '' : Number(e.target.value))}
-                      style={{ padding: '8px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--ba-border)', color: 'white', borderRadius: '4px', outline: 'none', fontSize: '0.9rem', width: '100%' }}
+                      style={{ padding: '6px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--ba-border)', color: 'white', borderRadius: '4px', outline: 'none', fontSize: '0.85rem', width: '100%' }}
                     />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--ba-text-sub)', marginBottom: '4px', whiteSpace: 'nowrap' }}>元本(円)</span>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--ba-text-sub)', marginBottom: '3px' }}>元本(円)</span>
                     <input 
                       type="number" value={item.investedPrincipal} onChange={(e) => handleUpdateItem(index, 'investedPrincipal', e.target.value === '' ? '' : Number(e.target.value))}
-                      style={{ padding: '8px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--ba-border)', color: 'white', borderRadius: '4px', outline: 'none', fontSize: '0.9rem', width: '100%' }}
+                      style={{ padding: '6px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--ba-border)', color: 'white', borderRadius: '4px', outline: 'none', fontSize: '0.85rem', width: '100%' }}
                     />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--ba-text-sub)', marginBottom: '4px', whiteSpace: 'nowrap' }}>毎月積立</span>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--ba-text-sub)', marginBottom: '3px' }}>毎月積立</span>
                     <input 
                       type="number" value={item.monthlyAddition} onChange={(e) => handleUpdateItem(index, 'monthlyAddition', e.target.value === '' ? '' : Number(e.target.value))}
-                      style={{ padding: '8px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--ba-border)', color: 'white', borderRadius: '4px', outline: 'none', fontSize: '0.9rem', width: '100%' }}
+                      style={{ padding: '6px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--ba-border)', color: 'white', borderRadius: '4px', outline: 'none', fontSize: '0.85rem', width: '100%' }}
                     />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--ba-text-sub)', marginBottom: '4px', whiteSpace: 'nowrap' }}>年利(%)</span>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--ba-text-sub)', marginBottom: '3px' }}>年利(%)</span>
                     <input 
                       type="number" step="0.1" value={item.expectedAnnualReturn} onChange={(e) => handleUpdateItem(index, 'expectedAnnualReturn', e.target.value === '' ? '' : Number(e.target.value))}
-                      style={{ padding: '8px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--ba-border)', color: 'var(--ba-green)', fontWeight: 'bold', borderRadius: '4px', outline: 'none', fontSize: '0.9rem', width: '100%' }}
+                      style={{ padding: '6px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--ba-border)', color: 'var(--ba-green)', fontWeight: 'bold', borderRadius: '4px', outline: 'none', fontSize: '0.85rem', width: '100%' }}
                     />
                   </div>
                 </div>
