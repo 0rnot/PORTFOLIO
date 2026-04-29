@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { UnitData, PortfolioItem } from '../types';
 import { fetchCurrentPrices } from '../api';
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, PieChart, Pie, Cell, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, PieChart, Pie, Cell, Tooltip, AreaChart, Area, YAxis } from 'recharts';
 import { Plus, Trash2, Activity, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface PortfolioProps {
@@ -272,7 +272,6 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
             含み益合計: {(aggregatedData.totalValue - aggregatedData.totalInvested) >= 0 ? '+' : ''}¥ {Math.round(aggregatedData.totalValue - aggregatedData.totalInvested).toLocaleString()}
           </div>
         </div>
-        </div>
         
         {/* 1D Portfolio Graph */}
         {portfolioHistory1D.length > 0 ? (
@@ -287,7 +286,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                 </defs>
                 <YAxis domain={['dataMin', 'dataMax']} hide />
                 <Tooltip 
-                  formatter={(value: number) => `¥${value.toLocaleString()}`}
+                  formatter={(value: any) => `¥${Number(value).toLocaleString()}`}
                   labelStyle={{ display: 'none' }}
                   contentStyle={{ background: 'rgba(0,0,0,0.8)', border: '1px solid var(--ba-cyan)', borderRadius: '4px', color: 'white' }} 
                 />
