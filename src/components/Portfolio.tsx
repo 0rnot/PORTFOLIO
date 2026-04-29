@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { UnitData, PortfolioItem } from '../types';
 import { fetchCurrentPrices } from '../api';
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, PieChart, Pie, Cell, Tooltip, AreaChart, Area, YAxis } from 'recharts';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, PieChart, Pie, Cell, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Plus, Trash2, Activity, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface PortfolioProps {
@@ -62,7 +62,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
   // 為替のリアルタイム変動
   useEffect(() => {
     const interval = setInterval(() => {
-      setExchangeRate(prev => {
+      setExchangeRate(() => {
         const change = baseExchangeRate * 0.0005 * (Math.random() - 0.5);
         return Number((baseExchangeRate + change).toFixed(3));
       });
@@ -591,7 +591,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                   tick={{ fill: 'var(--ba-text-sub)' }}
                 />
                 <Tooltip 
-                  formatter={(value: number) => `¥${value.toLocaleString()}`}
+                  formatter={(value: any) => `¥${Number(value).toLocaleString()}`}
                   contentStyle={{ background: 'var(--ba-surface)', border: '1px solid var(--ba-border)', borderRadius: '8px', color: 'white' }}
                 />
                 <Area type="monotone" dataKey="Projected" stroke="#22c55e" strokeWidth={3} fillOpacity={1} fill="url(#colorProjected)" name="予想評価額" />
