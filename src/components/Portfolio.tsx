@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { UnitData, PortfolioItem } from '../types';
 import { fetchCurrentPrices } from '../api';
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, PieChart, Pie, Cell, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, PieChart, Pie, Cell, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar } from 'recharts';
 import { Plus, Trash2 } from 'lucide-react';
 
 interface PortfolioProps {
@@ -265,6 +265,95 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
   const simFinal = simulationData[simulationData.length - 1];
   const simGain = simFinal ? simFinal.Projected - simFinal.Principal : 0;
   const simGainPct = simFinal && simFinal.Principal > 0 ? (simGain / simFinal.Principal * 100) : 0;
+
+  // === MARKET CLOCK ===
+  const [now, setNow] = useState(new Date());
+  useEffect(() => { const t = setInterval(() => setNow(new Date()), 10000); return () => clearInterval(t); }, []);
+  const markets = useMemo(() => {
+    const utcH = now.getUTCHours();
+    const utcM = now.getUTCMinutes();
+    const t = utcH * 60 + utcM;
+    const isOpen = (openH: number, openM: number, closeH: number, closeM: number) => {
+      const o = openH * 60 + openM, c = closeH * 60 + closeM;
+      return o < c ? (t >= o && t < c) : (t >= o || t < c);
+    };
+    return [
+      { name: 'TOKYO', tz: 'JST', open: isOpen(0, 0, 6, 0), hours: '09:00-15:00' },
+      { name: 'HONG KONG', tz: 'HKT', open: isOpen(1, 30, 8, 0), hours: '09:30-16:00' },
+      { name: 'LONDON', tz: 'GMT', open: isOpen(8, 0, 16, 30), hours: '08:00-16:30' },
+      { name: 'NEW YORK', tz: 'EST', open: isOpen(14, 30, 21, 0), hours: '09:30-16:00' },
+    ];
+  }, [now]);
+
+  // === FEAR & GREED INDEX ===
+  const fearGreed = useMemo(() => {
+    if (aggregatedData.items.length === 0) return 50;
+    let score = 50;
+    score += todayPLPct * 5;
+    const avgAtk = aggregatedData.radarData.find(r => r.subject === 'ATK')?.A || 50;
+    score += (avgAtk - 70) * 0.3;
+    const volatility = portfolioHistory1D.length > 2 ? portfolioHistory1D.reduce((s, p, i) => i === 0 ? 0 : s + Math.abs(p.value - portfolioHistory1D[i-1].value), 0) / portfolioHistory1D.length : 0;
+    const avgVal = portfolioHistory1D.length > 0 ? portfolioHistory1D.reduce((s, p) => s + p.value, 0) / portfolioHistory1D.length : 1;
+    score -= (volatility / avgVal) * 1000;
+    return Math.max(0, Math.min(100, Math.round(score)));
+  }, [aggregatedData, todayPLPct, portfolioHistory1D]);
+  const fgLabel = fearGreed <= 20 ? 'EXTREME FEAR' : fearGreed <= 40 ? 'FEAR' : fearGreed <= 60 ? 'NEUTRAL' : fearGreed <= 80 ? 'GREED' : 'EXTREME GREED';
+  const fgColor = fearGreed <= 20 ? 'var(--cp-red)' : fearGreed <= 40 ? '#f97316' : fearGreed <= 60 ? 'var(--cp-yellow)' : fearGreed <= 80 ? 'var(--cp-green)' : 'var(--cp-cyan)';
+
+  // === PERFORMANCE ATTRIBUTION ===
+  const perfAttribution = useMemo(() => {
+    return aggregatedData.items.map(item => {
+      const hist = item.unit.history['1D'];
+      const startPrice = hist[0]?.open || item.unit.power;
+      const startVal = calcUnitValue(item.unit, item.item.quantity, startPrice, baseExchangeRate);
+      const curVal = item.value;
+      const contrib = curVal - startVal;
+      return { ticker: item.unit.ticker, contribution: contrib, pct: todayStart > 0 ? (contrib / todayStart * 100) : 0 };
+    }).sort((a, b) => b.contribution - a.contribution);
+  }, [aggregatedData, baseExchangeRate, todayStart]);
+
+  // === CORRELATION MATRIX ===
+  const correlationData = useMemo(() => {
+    const items = aggregatedData.items;
+    if (items.length < 2) return [];
+    const histories = items.map(i => i.unit.history['1D'].map(h => h.close));
+    const corr = (a: number[], b: number[]) => {
+      const n = Math.min(a.length, b.length);
+      if (n < 3) return 0;
+      const ma = a.slice(0, n).reduce((s, v) => s + v, 0) / n;
+      const mb = b.slice(0, n).reduce((s, v) => s + v, 0) / n;
+      let num = 0, da = 0, db = 0;
+      for (let i = 0; i < n; i++) { num += (a[i]-ma)*(b[i]-mb); da += (a[i]-ma)**2; db += (b[i]-mb)**2; }
+      return da > 0 && db > 0 ? num / Math.sqrt(da * db) : 0;
+    };
+    return items.map((_, i) => items.map((__, j) => i === j ? 1 : corr(histories[i], histories[j])));
+  }, [aggregatedData]);
+
+  // === DIVIDEND CALENDAR ===
+  const dividendCalendar = useMemo(() => {
+    const months = Array.from({ length: 12 }, (_, i) => ({ month: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i], income: 0 }));
+    aggregatedData.items.forEach(item => {
+      const annualDiv = item.value * (item.unit.details.dividendYield / 100);
+      const quarterly = annualDiv / 4;
+      [2, 5, 8, 11].forEach(m => { months[m].income += quarterly; });
+    });
+    return months;
+  }, [aggregatedData]);
+
+  // === MONTE CARLO ===
+  const monteCarloData = useMemo(() => {
+    if (aggregatedData.items.length === 0) return simulationData;
+    const avgReturn = aggregatedData.items.reduce((s, i) => s + (i.item.expectedAnnualReturn as number) * (i.value / aggregatedData.totalValue), 0) / 100;
+    const vol = 0.15;
+    return simulationData.map((d, idx) => {
+      const y = idx;
+      const drift = Math.exp(avgReturn * y);
+      const devUp = Math.exp(vol * Math.sqrt(y) * 1.65);
+      const devDown = Math.exp(-vol * Math.sqrt(y) * 1.65);
+      const devMid = Math.exp(vol * Math.sqrt(y) * 0.67);
+      return { ...d, Upper90: Math.round(d.Projected * devUp / drift * drift), Lower90: Math.round(d.Projected * devDown / drift * drift), Upper50: Math.round(d.Projected * devMid / drift * drift), Lower50: Math.round(d.Projected / devMid * drift / drift) };
+    });
+  }, [simulationData, aggregatedData]);
 
   return (
     <div style={{ padding: '0 12px', maxWidth: '1400px', margin: '0 auto' }}>
@@ -579,7 +668,131 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
         </div>
       </div>
 
-      {/* === SIMULATION === */}
+      {/* === MARKET CLOCK + FEAR & GREED === */}
+      <div className="analytics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '12px' }}>
+        {/* Market Clock */}
+        <div className="glass-panel" style={{ padding: '14px' }}>
+          <div className="section-title" style={{ marginBottom: '10px' }}>MARKET CLOCK</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {markets.map(m => (
+              <div key={m.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 8px', background: 'rgba(0,240,255,0.02)', borderLeft: `3px solid ${m.open ? 'var(--cp-green)' : 'var(--cp-red)'}` }}>
+                <div>
+                  <div style={{ fontWeight: 900, fontSize: '0.75rem', color: 'var(--cp-text)' }}>{m.name}</div>
+                  <div style={{ fontSize: '0.6rem', color: 'var(--cp-text-sub)' }}>{m.hours} {m.tz}</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: m.open ? 'var(--cp-green)' : 'var(--cp-red)', display: 'inline-block', boxShadow: m.open ? '0 0 6px var(--cp-green)' : 'none' }} />
+                  <span style={{ fontSize: '0.65rem', fontWeight: 900, color: m.open ? 'var(--cp-green)' : 'var(--cp-red)' }}>{m.open ? 'OPEN' : 'CLOSED'}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Fear & Greed Gauge */}
+        <div className="glass-panel" style={{ padding: '14px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div className="section-title" style={{ marginBottom: '10px', alignSelf: 'flex-start' }}>FEAR & GREED</div>
+          <div style={{ position: 'relative', width: '160px', height: '90px', overflow: 'hidden' }}>
+            <svg viewBox="0 0 200 110" width="160" height="90">
+              <defs>
+                <linearGradient id="fgGrad" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="var(--cp-red)" />
+                  <stop offset="25%" stopColor="#f97316" />
+                  <stop offset="50%" stopColor="var(--cp-yellow)" />
+                  <stop offset="75%" stopColor="var(--cp-green)" />
+                  <stop offset="100%" stopColor="var(--cp-cyan)" />
+                </linearGradient>
+              </defs>
+              <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="14" strokeLinecap="round" />
+              <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="url(#fgGrad)" strokeWidth="14" strokeLinecap="round" strokeDasharray={`${(fearGreed / 100) * 251.2} 251.2`} />
+              <line x1="100" y1="100" x2={100 + 65 * Math.cos(Math.PI - (fearGreed / 100) * Math.PI)} y2={100 - 65 * Math.sin(Math.PI - (fearGreed / 100) * Math.PI)} stroke={fgColor} strokeWidth="2" />
+              <circle cx="100" cy="100" r="4" fill={fgColor} />
+            </svg>
+          </div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 900, color: fgColor, lineHeight: 1 }}>{fearGreed}</div>
+          <div style={{ fontSize: '0.65rem', fontWeight: 700, color: fgColor, letterSpacing: '2px', marginTop: '2px' }}>{fgLabel}</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginTop: '8px', fontSize: '0.55rem', color: 'var(--cp-text-sub)' }}>
+            <span>FEAR</span><span>NEUTRAL</span><span>GREED</span>
+          </div>
+        </div>
+
+        {/* Performance Attribution */}
+        <div className="glass-panel" style={{ padding: '14px' }}>
+          <div className="section-title" style={{ marginBottom: '8px' }}>ATTRIBUTION</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {perfAttribution.map(p => {
+              const maxAbs = Math.max(...perfAttribution.map(x => Math.abs(x.contribution)), 1);
+              const barW = Math.abs(p.contribution) / maxAbs * 100;
+              const isPos = p.contribution >= 0;
+              return (
+                <div key={p.ticker} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7rem' }}>
+                  <span style={{ width: '42px', fontWeight: 700, color: 'var(--cp-text)', flexShrink: 0 }}>{p.ticker}</span>
+                  <div style={{ flex: 1, height: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '1px', position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', [isPos ? 'left' : 'right']: 0, top: 0, bottom: 0, width: `${barW}%`, background: isPos ? 'var(--cp-green)' : 'var(--cp-red)', opacity: 0.6, borderRadius: '1px' }} />
+                  </div>
+                  <span style={{ width: '55px', textAlign: 'right', fontWeight: 700, color: isPos ? 'var(--cp-green)' : 'var(--cp-red)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
+                    {isPos ? '+' : ''}¥{Math.round(p.contribution).toLocaleString()}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* === CORRELATION + DIVIDEND === */}
+      <div className="analytics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '12px' }}>
+        {/* Correlation Heatmap */}
+        <div className="glass-panel" style={{ padding: '14px' }}>
+          <div className="section-title" style={{ marginBottom: '8px' }}>CORRELATION</div>
+          {correlationData.length > 0 && (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: '0.6rem' }}>
+                <thead>
+                  <tr>
+                    <th style={{ padding: '3px', color: 'var(--cp-text-sub)' }}></th>
+                    {aggregatedData.items.map(i => <th key={i.unit.ticker} style={{ padding: '3px', color: 'var(--cp-cyan)', fontWeight: 700, textAlign: 'center' }}>{i.unit.ticker.substring(0, 5)}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {correlationData.map((row, ri) => (
+                    <tr key={ri}>
+                      <td style={{ padding: '3px', color: 'var(--cp-cyan)', fontWeight: 700 }}>{aggregatedData.items[ri]?.unit.ticker.substring(0, 5)}</td>
+                      {row.map((val, ci) => {
+                        const abs = Math.abs(val);
+                        const bg = val >= 0 ? `rgba(57,255,20,${abs * 0.5})` : `rgba(255,51,102,${abs * 0.5})`;
+                        return <td key={ci} style={{ padding: '3px', textAlign: 'center', background: bg, color: 'var(--cp-text)', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{ri === ci ? '1.0' : val.toFixed(1)}</td>;
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Dividend Calendar */}
+        <div className="glass-panel" style={{ padding: '14px' }}>
+          <div className="section-title" style={{ marginBottom: '8px' }}>DIVIDEND CALENDAR</div>
+          <div style={{ height: '200px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dividendCalendar} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                <XAxis dataKey="month" tick={{ fill: 'var(--cp-text-sub)', fontSize: 9 }} />
+                <YAxis tick={{ fill: 'var(--cp-text-sub)', fontSize: 8 }} tickFormatter={(v) => `¥${(v/1000).toFixed(0)}k`} width={40} />
+                <Tooltip formatter={(v: any) => `¥${Math.round(Number(v)).toLocaleString()}`} contentStyle={{ background: 'var(--cp-surface)', border: '1px solid var(--cp-border)', borderRadius: '2px', color: 'var(--cp-text)', fontSize: '0.75rem' }} />
+                <Bar dataKey="income" fill="var(--cp-yellow)" radius={[2, 2, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', fontSize: '0.7rem' }}>
+            <span style={{ color: 'var(--cp-text-sub)' }}>EST. ANNUAL</span>
+            <span style={{ color: 'var(--cp-yellow)', fontWeight: 900, fontVariantNumeric: 'tabular-nums' }}>¥{Math.round(dividendCalendar.reduce((s, m) => s + m.income, 0)).toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* === SIMULATION (Monte Carlo Enhanced) === */}
       <div className="glass-panel" style={{ padding: '14px', marginBottom: '30px' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', gap: '8px' }}>
           <div className="section-title" style={{ borderLeftColor: 'var(--cp-green)' }}>SIMULATION</div>
@@ -605,7 +818,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
 
         <div style={{ height: 'clamp(200px, 40vw, 350px)' }}>
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={simulationData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+            <AreaChart data={monteCarloData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorProjected" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--cp-green)" stopOpacity={0.6} /><stop offset="95%" stopColor="var(--cp-green)" stopOpacity={0} /></linearGradient>
                 <linearGradient id="colorPrincipal" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#64748b" stopOpacity={0.5} /><stop offset="95%" stopColor="#64748b" stopOpacity={0} /></linearGradient>
@@ -614,6 +827,10 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
               <XAxis dataKey="year" stroke="var(--cp-text-sub)" tick={{ fill: 'var(--cp-text-sub)', fontSize: 10 }} />
               <YAxis stroke="var(--cp-text-sub)" tickFormatter={(v) => `¥${(v / 10000).toLocaleString()}万`} tick={{ fill: 'var(--cp-text-sub)', fontSize: 10 }} width={60} />
               <Tooltip formatter={(v: any) => `¥${Number(v).toLocaleString()}`} contentStyle={{ background: 'var(--cp-surface)', border: '1px solid var(--cp-border)', borderRadius: '2px', color: 'var(--cp-text)' }} />
+              <Area type="monotone" dataKey="Upper90" stroke="none" fill="var(--cp-cyan)" fillOpacity={0.05} name="上位90%" />
+              <Area type="monotone" dataKey="Lower90" stroke="none" fill="var(--cp-cyan)" fillOpacity={0.05} name="下位90%" />
+              <Area type="monotone" dataKey="Upper50" stroke="none" fill="var(--cp-cyan)" fillOpacity={0.08} name="上位50%" />
+              <Area type="monotone" dataKey="Lower50" stroke="none" fill="var(--cp-cyan)" fillOpacity={0.08} name="下位50%" />
               <Area type="monotone" dataKey="Projected" stroke="var(--cp-green)" strokeWidth={2} fillOpacity={1} fill="url(#colorProjected)" name="予想評価額" />
               <Area type="monotone" dataKey="Principal" stroke="#64748b" strokeWidth={2} fillOpacity={1} fill="url(#colorPrincipal)" name="投資元本" />
             </AreaChart>
