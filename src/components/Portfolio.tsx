@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { UnitData, PortfolioItem } from '../types';
 import { fetchCurrentPrices, fetchFearGreedIndex } from '../api';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, PieChart, Pie, Cell, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar } from 'recharts';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Settings } from 'lucide-react';
 
 interface PortfolioProps {
   units: UnitData[];
@@ -42,6 +42,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
     const saved = localStorage.getItem('portfolio-ath');
     return saved ? Number(saved) : 0;
   });
+  const [expandedUnits, setExpandedUnits] = useState<Set<number>>(new Set());
 
   // 初回および定期的にリアルタイム為替レートを取得
   useEffect(() => {
@@ -636,40 +637,43 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                     style={{ flex: 1, padding: '5px 8px', background: 'rgba(0,0,0,0.4)', border: '1px solid var(--cp-border)', color: 'var(--cp-text)', fontWeight: 700, borderRadius: '2px', outline: 'none', cursor: 'pointer', minWidth: 0, fontSize: '0.8rem' }}>
                     {units.map(u => <option key={u.id} value={u.id}>{u.ticker} - {u.name}</option>)}
                   </select>
+                  <button onClick={() => setExpandedUnits(prev => { const next = new Set(prev); if (next.has(index)) next.delete(index); else next.add(index); return next; })} style={{ background: expandedUnits.has(index) ? 'rgba(0,240,255,0.15)' : 'rgba(255,255,255,0.05)', border: `1px solid ${expandedUnits.has(index) ? 'rgba(0,240,255,0.5)' : 'var(--cp-border)'}`, color: expandedUnits.has(index) ? 'var(--cp-cyan)' : 'var(--cp-text-sub)', cursor: 'pointer', padding: '6px', borderRadius: '2px', flexShrink: 0, transition: 'all 0.2s' }}>
+                    <Settings size={14} />
+                  </button>
                   <button onClick={() => handleRemove(index)} style={{ background: 'rgba(255,51,51,0.1)', border: '1px solid rgba(255,51,51,0.3)', color: 'var(--cp-red)', cursor: 'pointer', padding: '6px', borderRadius: '2px', flexShrink: 0 }}>
                     <Trash2 size={14} />
                   </button>
                 </div>
                 {/* Row 2: Stats (left) + Sparkline (right, fills space) */}
-                <div style={{ display: 'flex', gap: '10px', marginBottom: '8px', alignItems: 'center' }}>
-                  <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '180px' }}>
+                <div style={{ display: 'flex', gap: '12px', marginBottom: expandedUnits.has(index) ? '8px' : '0', alignItems: 'center' }}>
+                  <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '200px' }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                       <span className="neon-label" style={{ width: '50px' }}>PRICE</span>
-                      <span style={{ fontSize: '0.95rem', fontWeight: 900, color: 'var(--cp-text)', fontVariantNumeric: 'tabular-nums' }}>
+                      <span style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--cp-text)', fontVariantNumeric: 'tabular-nums' }}>
                         {unit.power.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                        <span style={{ fontSize: '0.65rem', marginLeft: '4px', color: isUp ? 'var(--cp-green)' : 'var(--cp-red)' }}>
+                        <span style={{ fontSize: '0.7rem', marginLeft: '4px', color: isUp ? 'var(--cp-green)' : 'var(--cp-red)' }}>
                           {isUp ? '▲' : '▼'}{diffPct}%
                         </span>
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                       <span className="neon-label" style={{ width: '50px' }}>評価額</span>
-                      <span style={{ fontSize: '1rem', fontWeight: 900, color: col, fontVariantNumeric: 'tabular-nums' }}>¥{Math.round(currentValue).toLocaleString()}</span>
+                      <span style={{ fontSize: '1.1rem', fontWeight: 900, color: col, fontVariantNumeric: 'tabular-nums' }}>¥{Math.round(currentValue).toLocaleString()}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                       <span className="neon-label" style={{ width: '50px' }}>含み益</span>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: gain >= 0 ? 'var(--cp-green)' : 'var(--cp-red)', fontVariantNumeric: 'tabular-nums' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: gain >= 0 ? 'var(--cp-green)' : 'var(--cp-red)', fontVariantNumeric: 'tabular-nums' }}>
                         {gain >= 0 ? '+' : ''}¥{Math.round(gain).toLocaleString()} ({gainPct}%)
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                       <span className="neon-label" style={{ width: '50px' }}>本日損益</span>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: dayChangeVal >= 0 ? 'var(--cp-green)' : 'var(--cp-red)', fontVariantNumeric: 'tabular-nums' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: dayChangeVal >= 0 ? 'var(--cp-green)' : 'var(--cp-red)', fontVariantNumeric: 'tabular-nums' }}>
                         {dayChangeVal >= 0 ? '+' : ''}¥{Math.round(dayChangeVal).toLocaleString()}
                       </span>
                     </div>
                   </div>
-                  <div style={{ flex: '1 1 0', height: '80px', minWidth: '120px', position: 'relative' }}>
+                  <div style={{ flex: '1 1 0', height: '100px', minWidth: '150px', position: 'relative' }}>
                     <button onClick={() => setChartMode(chartMode === 'line' ? 'candle' : 'line')} style={{ position: 'absolute', top: 0, right: 0, zIndex: 2, background: 'rgba(0,0,0,0.5)', border: '1px solid var(--cp-border)', color: 'var(--cp-text-sub)', fontSize: '0.55rem', padding: '2px 6px', cursor: 'pointer', borderRadius: '2px', fontWeight: 700, letterSpacing: '0.5px' }}>
                       {chartMode === 'line' ? 'CANDLE' : 'LINE'}
                     </button>
@@ -706,22 +710,24 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                     </ResponsiveContainer>
                   </div>
                 </div>
-                {/* Row 3: Inputs 2x2 */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
-                  {[
-                    { lbl: unit.type === 'fund' ? '口数' : '数量', val: item.quantity, field: 'quantity' as keyof PortfolioItem, green: false },
-                    { lbl: '元本(¥)', val: item.investedPrincipal, field: 'investedPrincipal' as keyof PortfolioItem, green: false },
-                    { lbl: '毎月積立', val: item.monthlyAddition, field: 'monthlyAddition' as keyof PortfolioItem, green: false },
-                    { lbl: '年利(%)', val: item.expectedAnnualReturn, field: 'expectedAnnualReturn' as keyof PortfolioItem, green: true },
-                  ].map(inp => (
-                    <div key={inp.lbl}>
-                      <div className="neon-label" style={{ marginBottom: '2px' }}>{inp.lbl}</div>
-                      <input type="number" step={inp.field === 'expectedAnnualReturn' ? '0.1' : undefined} value={inp.val}
-                        onChange={(e) => handleUpdateItem(index, inp.field, e.target.value === '' ? '' : Number(e.target.value))}
-                        style={{ width: '100%', padding: '4px 6px', background: 'rgba(0,0,0,0.4)', border: '1px solid var(--cp-border)', color: inp.green ? 'var(--cp-green)' : 'var(--cp-text)', fontWeight: inp.green ? 700 : 400, borderRadius: '2px', outline: 'none', fontSize: '0.8rem', fontVariantNumeric: 'tabular-nums' }} />
-                    </div>
-                  ))}
-                </div>
+                {/* Row 3: Inputs (collapsible) */}
+                {expandedUnits.has(index) && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', animation: 'ath-sub-in 0.3s ease both', borderTop: '1px solid var(--cp-border)', paddingTop: '8px', marginTop: '4px' }}>
+                    {[
+                      { lbl: unit.type === 'fund' ? '口数' : '数量', val: item.quantity, field: 'quantity' as keyof PortfolioItem, green: false },
+                      { lbl: '元本(¥)', val: item.investedPrincipal, field: 'investedPrincipal' as keyof PortfolioItem, green: false },
+                      { lbl: '毎月積立', val: item.monthlyAddition, field: 'monthlyAddition' as keyof PortfolioItem, green: false },
+                      { lbl: '年利(%)', val: item.expectedAnnualReturn, field: 'expectedAnnualReturn' as keyof PortfolioItem, green: true },
+                    ].map(inp => (
+                      <div key={inp.lbl}>
+                        <div className="neon-label" style={{ marginBottom: '2px' }}>{inp.lbl}</div>
+                        <input type="number" step={inp.field === 'expectedAnnualReturn' ? '0.1' : undefined} value={inp.val}
+                          onChange={(e) => handleUpdateItem(index, inp.field, e.target.value === '' ? '' : Number(e.target.value))}
+                          style={{ width: '100%', padding: '4px 6px', background: 'rgba(0,0,0,0.4)', border: '1px solid var(--cp-border)', color: inp.green ? 'var(--cp-green)' : 'var(--cp-text)', fontWeight: inp.green ? 700 : 400, borderRadius: '2px', outline: 'none', fontSize: '0.8rem', fontVariantNumeric: 'tabular-nums' }} />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             );
           })}
