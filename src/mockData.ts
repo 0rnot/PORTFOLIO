@@ -28,7 +28,7 @@ const generateHistory = (base: number, points: number, volatility: number): Hist
 };
 
 // Google FaviconV2 API で高品質ロゴを取得（従来のs2より鮮明）
-const getLogo = (domain: string) => `https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${domain}&size=128`;
+const getLogo = (domain: string) => `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 
 const createUnit = (
   id: string, type: 'fund'|'stock'|'crypto'|'commodity', name: string, ticker: string, 
