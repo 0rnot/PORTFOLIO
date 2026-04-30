@@ -27,7 +27,7 @@ const generateHistory = (base: number, points: number, volatility: number): Hist
   return data;
 };
 
-// Google FaviconV2 API で高品質ロゴを取得（従来のs2より鮮明）
+// Google Favicon API
 const getLogo = (domain: string) => `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 
 const createUnit = (
@@ -68,8 +68,9 @@ const DECENTRALIZED = [{ id: 'global', name: 'Global Decentralized', ticker: 'GL
 const COMMODITY_GEO = [{ id: 'global', name: 'Global Commodity', ticker: 'GLOBAL', weight: 100, color: '#eab308' }];
 
 // 主要投資信託
+// Tier基準: EX=圧倒的実績+低コスト, S=トップクラス, A=優良安定, B=平均的, C=ハイリスクor低実績
 const funds = [
-  createUnit('sp500', 'fund', 'eMAXIS Slim S&P 500 相当', '^GSPC', 5200, 85, 70, 95, 40, 'S', getLogo('am.mufg.jp'), 7.0, [
+  createUnit('sp500', 'fund', 'eMAXIS Slim S&P 500 相当', '^GSPC', 5200, 82, 75, 90, 45, 'S', getLogo('am.mufg.jp'), 7.0, [
     { id: 'nvda', name: 'NVIDIA Corp.', ticker: 'NVDA', weight: 7.8, color: '#22c55e' },
     { id: 'aapl', name: 'Apple Inc.', ticker: 'AAPL', weight: 6.3, color: '#0ea5e9' },
     { id: 'msft', name: 'Microsoft Corp.', ticker: 'MSFT', weight: 4.9, color: '#3b82f6' },
@@ -81,7 +82,7 @@ const funds = [
     { id: 'brkb', name: 'Berkshire Hathaway', ticker: 'BRK-B', weight: 1.6, color: '#64748b' },
     { id: 'lly', name: 'Eli Lilly', ticker: 'LLY', weight: 1.4, color: '#ef4444' },
   ], US_COUNTRY, 5.881, { sharpe: 1.15, yield: 1.3, expense: 0.093, assets: '5.8兆円' }),
-  createUnit('ndq100', 'fund', 'eMAXIS NASDAQ100 相当', '^NDX', 18000, 98, 45, 80, 10, 'S', getLogo('am.mufg.jp'), 10.0, [
+  createUnit('ndq100', 'fund', 'eMAXIS NASDAQ100 相当', '^NDX', 18000, 92, 40, 78, 12, 'A', getLogo('am.mufg.jp'), 10.0, [
     { id: 'nvda', name: 'NVIDIA Corp.', ticker: 'NVDA', weight: 8.7, color: '#22c55e' },
     { id: 'aapl', name: 'Apple Inc.', ticker: 'AAPL', weight: 7.6, color: '#0ea5e9' },
     { id: 'msft', name: 'Microsoft Corp.', ticker: 'MSFT', weight: 5.6, color: '#3b82f6' },
@@ -98,7 +99,7 @@ const funds = [
     { id: 'ca', name: 'Canada', ticker: 'CA', weight: 1.1, color: '#ef4444' },
     { id: 'other', name: 'Others', ticker: 'OTHER', weight: 1.9, color: '#64748b' }
   ], 1.206, { sharpe: 1.05, yield: 0.6, expense: 0.20, assets: '1.2兆円' }),
-  createUnit('acwi', 'fund', 'eMAXIS Slim 全世界株式 相当', 'URTH', 140, 60, 90, 100, 50, 'S', getLogo('am.mufg.jp'), 5.5, [
+  createUnit('acwi', 'fund', 'eMAXIS Slim 全世界株式 相当', 'URTH', 140, 60, 88, 92, 55, 'S', getLogo('am.mufg.jp'), 5.5, [
     { id: 'msft', name: 'Microsoft Corp.', ticker: 'MSFT', weight: 4.3, color: '#3b82f6' },
     { id: 'aapl', name: 'Apple Inc.', ticker: 'AAPL', weight: 3.8, color: '#0ea5e9' },
     { id: 'nvda', name: 'NVIDIA Corp.', ticker: 'NVDA', weight: 2.9, color: '#22c55e' },
@@ -110,57 +111,57 @@ const funds = [
     { id: 'avgo', name: 'Broadcom', ticker: 'AVGO', weight: 0.8, color: '#3b82f6' },
     { id: 'brkb', name: 'Berkshire Hathaway', ticker: 'BRK-B', weight: 0.8, color: '#64748b' },
   ], GLOBAL_COUNTRY, 150, { sharpe: 0.95, yield: 1.8, expense: 0.058, assets: '4.5兆円' }),
-  createUnit('fang', 'fund', 'iFreeNEXT FANG+ 相当', '^NYFANG', 10000, 120, 20, 85, 0, 'EX', getLogo('daiwa-am.co.jp'), 15.0, [
+  createUnit('fang', 'fund', 'iFreeNEXT FANG+ 相当', '^NYFANG', 10000, 95, 18, 70, 5, 'B', getLogo('daiwa-am.co.jp'), 15.0, [
     { id: 'meta', name: 'Meta Platforms', ticker: 'META', weight: 10.5, color: '#8b5cf6' },
     { id: 'tsla', name: 'Tesla Inc.', ticker: 'TSLA', weight: 10.2, color: '#ef4444' },
     { id: 'nvda', name: 'NVIDIA Corp.', ticker: 'NVDA', weight: 9.8, color: '#22c55e' },
     { id: 'amzn', name: 'Amazon.com Inc.', ticker: 'AMZN', weight: 9.5, color: '#f59e0b' },
   ], US_COUNTRY, 4.2, { sharpe: 0.88, yield: 0.1, expense: 0.78, assets: '2500億円' }),
-  createUnit('vti', 'fund', 'Vanguard Total Stock Market', 'VTI', 260, 80, 75, 95, 45, 'A', getLogo('vanguard.com'), 7.0, [], US_COUNTRY, undefined, { sharpe: 1.10, yield: 1.3, expense: 0.03, assets: '$1.6T' }),
-  createUnit('vxus', 'fund', 'Vanguard Total International', 'VXUS', 60, 50, 85, 90, 60, 'B', getLogo('vanguard.com'), 4.0, [], GLOBAL_COUNTRY, undefined, { sharpe: 0.65, yield: 3.1, expense: 0.07, assets: '$430B' }),
-  createUnit('vym', 'fund', 'Vanguard High Dividend Yield', 'VYM', 120, 40, 90, 60, 100, 'A', getLogo('vanguard.com'), 6.0, [], US_COUNTRY, undefined, { sharpe: 0.85, yield: 2.8, expense: 0.06, assets: '$550B' }),
-  createUnit('qqq', 'fund', 'Invesco QQQ Trust', 'QQQ', 440, 98, 45, 80, 10, 'S', getLogo('invesco.com'), 10.0, [], US_COUNTRY, undefined, { sharpe: 1.08, yield: 0.5, expense: 0.20, assets: '$290B' }),
-  createUnit('spy', 'fund', 'SPDR S&P 500 ETF', 'SPY', 520, 85, 70, 95, 40, 'S', getLogo('ssga.com'), 7.0, [], US_COUNTRY, undefined, { sharpe: 1.12, yield: 1.3, expense: 0.09, assets: '$560B' }),
-  createUnit('arkk', 'fund', 'ARK Innovation ETF', 'ARKK', 50, 100, 20, 50, 0, 'C', getLogo('ark-funds.com'), 15.0, [], US_COUNTRY, undefined, { sharpe: 0.25, yield: 0.0, expense: 0.75, assets: '$6.5B' }),
-  createUnit('dia', 'fund', 'Dow Jones Industrial Average', 'DIA', 390, 70, 80, 80, 70, 'B', getLogo('ssga.com'), 6.5, [], US_COUNTRY, undefined, { sharpe: 0.92, yield: 1.7, expense: 0.16, assets: '$35B' }),
+  createUnit('vti', 'fund', 'Vanguard Total Stock Market', 'VTI', 260, 78, 80, 92, 50, 'S', getLogo('vanguard.com'), 7.0, [], US_COUNTRY, undefined, { sharpe: 1.10, yield: 1.3, expense: 0.03, assets: '$1.6T' }),
+  createUnit('vxus', 'fund', 'Vanguard Total International', 'VXUS', 60, 48, 78, 85, 55, 'B', getLogo('vanguard.com'), 4.0, [], GLOBAL_COUNTRY, undefined, { sharpe: 0.65, yield: 3.1, expense: 0.07, assets: '$430B' }),
+  createUnit('vym', 'fund', 'Vanguard High Dividend Yield', 'VYM', 120, 42, 88, 65, 90, 'A', getLogo('vanguard.com'), 6.0, [], US_COUNTRY, undefined, { sharpe: 0.85, yield: 2.8, expense: 0.06, assets: '$550B' }),
+  createUnit('qqq', 'fund', 'Invesco QQQ Trust', 'QQQ', 440, 90, 42, 78, 12, 'A', getLogo('invesco.com'), 10.0, [], US_COUNTRY, undefined, { sharpe: 1.08, yield: 0.5, expense: 0.20, assets: '$290B' }),
+  createUnit('spy', 'fund', 'SPDR S&P 500 ETF', 'SPY', 520, 82, 75, 90, 45, 'S', getLogo('ssga.com'), 7.0, [], US_COUNTRY, undefined, { sharpe: 1.12, yield: 1.3, expense: 0.09, assets: '$560B' }),
+  createUnit('arkk', 'fund', 'ARK Innovation ETF', 'ARKK', 50, 88, 12, 45, 0, 'C', getLogo('ark-funds.com'), 15.0, [], US_COUNTRY, undefined, { sharpe: 0.25, yield: 0.0, expense: 0.75, assets: '$6.5B' }),
+  createUnit('dia', 'fund', 'Dow Jones Industrial Average', 'DIA', 390, 65, 82, 75, 65, 'B', getLogo('ssga.com'), 6.5, [], US_COUNTRY, undefined, { sharpe: 0.92, yield: 1.7, expense: 0.16, assets: '$35B' }),
 ];
 
 // 時価総額上位の個別銘柄 20個
 const stocks = [
-  createUnit('aapl', 'stock', 'Apple Inc.', 'AAPL', 170, 95, 60, 100, 20, 'S', getLogo('apple.com'), 10.0, [], US_COUNTRY, undefined, { sharpe: 1.25, yield: 0.5, expense: 0, assets: '$3.4T' }),
-  createUnit('msft', 'stock', 'Microsoft Corp.', 'MSFT', 400, 95, 65, 95, 20, 'S', getLogo('microsoft.com'), 10.0, [], US_COUNTRY, undefined, { sharpe: 1.35, yield: 0.7, expense: 0, assets: '$3.1T' }),
-  createUnit('nvda', 'stock', 'NVIDIA Corp.', 'NVDA', 900, 100, 40, 90, 10, 'EX', getLogo('nvidia.com'), 15.0, [], US_COUNTRY, undefined, { sharpe: 1.80, yield: 0.02, expense: 0, assets: '$2.8T' }),
-  createUnit('amzn', 'stock', 'Amazon.com Inc.', 'AMZN', 180, 90, 50, 90, 10, 'A', getLogo('amazon.com'), 12.0, [], US_COUNTRY, undefined, { sharpe: 1.15, yield: 0.0, expense: 0, assets: '$2.0T' }),
-  createUnit('meta', 'stock', 'Meta Platforms', 'META', 500, 92, 45, 85, 10, 'A', getLogo('meta.com'), 12.0, [], US_COUNTRY, undefined, { sharpe: 1.40, yield: 0.4, expense: 0, assets: '$1.4T' }),
-  createUnit('googl', 'stock', 'Alphabet Inc.', 'GOOGL', 160, 90, 60, 90, 10, 'A', getLogo('google.com'), 10.0, [], US_COUNTRY, undefined, { sharpe: 1.10, yield: 0.5, expense: 0, assets: '$2.1T' }),
-  createUnit('tsla', 'stock', 'Tesla Inc.', 'TSLA', 170, 95, 30, 80, 0, 'B', getLogo('tesla.com'), 18.0, [], US_COUNTRY, undefined, { sharpe: 0.55, yield: 0.0, expense: 0, assets: '$540B' }),
-  createUnit('brkb', 'stock', 'Berkshire Hathaway', 'BRK-B', 400, 60, 100, 70, 50, 'A', getLogo('berkshirehathaway.com'), 8.0, [], US_COUNTRY, undefined, { sharpe: 0.95, yield: 0.0, expense: 0, assets: '$880B' }),
-  createUnit('lly', 'stock', 'Eli Lilly & Co.', 'LLY', 750, 90, 70, 80, 20, 'A', getLogo('lilly.com'), 14.0, [], US_COUNTRY, undefined, { sharpe: 1.50, yield: 0.7, expense: 0, assets: '$720B' }),
-  createUnit('avgo', 'stock', 'Broadcom Inc.', 'AVGO', 1300, 95, 55, 85, 30, 'A', getLogo('broadcom.com'), 12.0, [], US_COUNTRY, undefined, { sharpe: 1.30, yield: 1.3, expense: 0, assets: '$850B' }),
-  createUnit('v', 'stock', 'Visa Inc.', 'V', 280, 80, 85, 85, 40, 'A', getLogo('visa.com'), 9.0, [], US_COUNTRY, undefined, { sharpe: 1.20, yield: 0.8, expense: 0, assets: '$580B' }),
-  createUnit('jpm', 'stock', 'JPMorgan Chase', 'JPM', 190, 75, 90, 75, 50, 'A', getLogo('jpmorganchase.com'), 8.0, [], US_COUNTRY, undefined, { sharpe: 1.05, yield: 2.3, expense: 0, assets: '$690B' }),
-  createUnit('wmt', 'stock', 'Walmart Inc.', 'WMT', 60, 60, 95, 70, 60, 'B', getLogo('walmart.com'), 6.0, [], US_COUNTRY, undefined, { sharpe: 0.80, yield: 1.4, expense: 0, assets: '$530B' }),
-  createUnit('ma', 'stock', 'Mastercard Inc.', 'MA', 470, 80, 85, 85, 35, 'A', getLogo('mastercard.com'), 10.0, [], US_COUNTRY, undefined, { sharpe: 1.18, yield: 0.6, expense: 0, assets: '$440B' }),
-  createUnit('xom', 'stock', 'Exxon Mobil Corp.', 'XOM', 115, 65, 80, 70, 70, 'B', getLogo('exxonmobil.com'), 7.0, [], US_COUNTRY, undefined, { sharpe: 0.75, yield: 3.4, expense: 0, assets: '$460B' }),
-  createUnit('unh', 'stock', 'UnitedHealth Group', 'UNH', 480, 70, 90, 75, 50, 'A', getLogo('uhg.com'), 8.0, [], US_COUNTRY, undefined, { sharpe: 1.00, yield: 1.5, expense: 0, assets: '$520B' }),
-  createUnit('hd', 'stock', 'Home Depot Inc.', 'HD', 380, 75, 80, 70, 60, 'B', getLogo('homedepot.com'), 8.0, [], US_COUNTRY, undefined, { sharpe: 0.90, yield: 2.4, expense: 0, assets: '$380B' }),
-  createUnit('pg', 'stock', 'Procter & Gamble', 'PG', 160, 50, 100, 60, 70, 'A', getLogo('pg.com'), 6.0, [], US_COUNTRY, undefined, { sharpe: 0.85, yield: 2.5, expense: 0, assets: '$390B' }),
-  createUnit('jnj', 'stock', 'Johnson & Johnson', 'JNJ', 155, 55, 95, 65, 65, 'B', getLogo('jnj.com'), 6.0, [], US_COUNTRY, undefined, { sharpe: 0.70, yield: 3.0, expense: 0, assets: '$370B' }),
-  createUnit('orcl', 'stock', 'Oracle Corp.', 'ORCL', 125, 85, 70, 80, 30, 'B', getLogo('oracle.com'), 9.0, [], US_COUNTRY, undefined, { sharpe: 1.05, yield: 1.2, expense: 0, assets: '$350B' }),
+  createUnit('aapl', 'stock', 'Apple Inc.', 'AAPL', 170, 88, 82, 90, 35, 'EX', getLogo('apple.com'), 10.0, [], US_COUNTRY, undefined, { sharpe: 1.25, yield: 0.5, expense: 0, assets: '$3.4T' }),
+  createUnit('msft', 'stock', 'Microsoft Corp.', 'MSFT', 400, 88, 85, 88, 30, 'EX', getLogo('microsoft.com'), 10.0, [], US_COUNTRY, undefined, { sharpe: 1.35, yield: 0.7, expense: 0, assets: '$3.1T' }),
+  createUnit('nvda', 'stock', 'NVIDIA Corp.', 'NVDA', 900, 100, 30, 88, 5, 'S', getLogo('nvidia.com'), 15.0, [], US_COUNTRY, undefined, { sharpe: 1.80, yield: 0.02, expense: 0, assets: '$2.8T' }),
+  createUnit('amzn', 'stock', 'Amazon.com Inc.', 'AMZN', 180, 85, 55, 85, 10, 'S', getLogo('amazon.com'), 12.0, [], US_COUNTRY, undefined, { sharpe: 1.15, yield: 0.0, expense: 0, assets: '$2.0T' }),
+  createUnit('meta', 'stock', 'Meta Platforms', 'META', 500, 90, 48, 80, 15, 'A', getLogo('meta.com'), 12.0, [], US_COUNTRY, undefined, { sharpe: 1.40, yield: 0.4, expense: 0, assets: '$1.4T' }),
+  createUnit('googl', 'stock', 'Alphabet Inc.', 'GOOGL', 160, 85, 68, 85, 15, 'S', getLogo('google.com'), 10.0, [], US_COUNTRY, undefined, { sharpe: 1.10, yield: 0.5, expense: 0, assets: '$2.1T' }),
+  createUnit('tsla', 'stock', 'Tesla Inc.', 'TSLA', 170, 92, 15, 75, 0, 'B', getLogo('tesla.com'), 18.0, [], US_COUNTRY, undefined, { sharpe: 0.55, yield: 0.0, expense: 0, assets: '$540B' }),
+  createUnit('brkb', 'stock', 'Berkshire Hathaway', 'BRK-B', 400, 55, 95, 65, 45, 'S', getLogo('berkshirehathaway.com'), 8.0, [], US_COUNTRY, undefined, { sharpe: 0.95, yield: 0.0, expense: 0, assets: '$880B' }),
+  createUnit('lly', 'stock', 'Eli Lilly & Co.', 'LLY', 750, 85, 70, 75, 25, 'A', getLogo('lilly.com'), 14.0, [], US_COUNTRY, undefined, { sharpe: 1.50, yield: 0.7, expense: 0, assets: '$720B' }),
+  createUnit('avgo', 'stock', 'Broadcom Inc.', 'AVGO', 1300, 88, 60, 80, 35, 'A', getLogo('broadcom.com'), 12.0, [], US_COUNTRY, undefined, { sharpe: 1.30, yield: 1.3, expense: 0, assets: '$850B' }),
+  createUnit('v', 'stock', 'Visa Inc.', 'V', 280, 75, 88, 82, 45, 'A', getLogo('visa.com'), 9.0, [], US_COUNTRY, undefined, { sharpe: 1.20, yield: 0.8, expense: 0, assets: '$580B' }),
+  createUnit('jpm', 'stock', 'JPMorgan Chase', 'JPM', 190, 72, 85, 72, 55, 'A', getLogo('jpmorganchase.com'), 8.0, [], US_COUNTRY, undefined, { sharpe: 1.05, yield: 2.3, expense: 0, assets: '$690B' }),
+  createUnit('wmt', 'stock', 'Walmart Inc.', 'WMT', 60, 50, 92, 65, 70, 'B', getLogo('walmart.com'), 6.0, [], US_COUNTRY, undefined, { sharpe: 0.80, yield: 1.4, expense: 0, assets: '$530B' }),
+  createUnit('ma', 'stock', 'Mastercard Inc.', 'MA', 470, 75, 85, 82, 40, 'A', getLogo('mastercard.com'), 10.0, [], US_COUNTRY, undefined, { sharpe: 1.18, yield: 0.6, expense: 0, assets: '$440B' }),
+  createUnit('xom', 'stock', 'Exxon Mobil Corp.', 'XOM', 115, 58, 75, 60, 72, 'B', getLogo('exxonmobil.com'), 7.0, [], US_COUNTRY, undefined, { sharpe: 0.75, yield: 3.4, expense: 0, assets: '$460B' }),
+  createUnit('unh', 'stock', 'UnitedHealth Group', 'UNH', 480, 68, 85, 72, 55, 'A', getLogo('uhg.com'), 8.0, [], US_COUNTRY, undefined, { sharpe: 1.00, yield: 1.5, expense: 0, assets: '$520B' }),
+  createUnit('hd', 'stock', 'Home Depot Inc.', 'HD', 380, 68, 75, 68, 58, 'B', getLogo('homedepot.com'), 8.0, [], US_COUNTRY, undefined, { sharpe: 0.90, yield: 2.4, expense: 0, assets: '$380B' }),
+  createUnit('pg', 'stock', 'Procter & Gamble', 'PG', 160, 45, 95, 58, 75, 'A', getLogo('pg.com'), 6.0, [], US_COUNTRY, undefined, { sharpe: 0.85, yield: 2.5, expense: 0, assets: '$390B' }),
+  createUnit('jnj', 'stock', 'Johnson & Johnson', 'JNJ', 155, 48, 88, 58, 68, 'B', getLogo('jnj.com'), 6.0, [], US_COUNTRY, undefined, { sharpe: 0.70, yield: 3.0, expense: 0, assets: '$370B' }),
+  createUnit('orcl', 'stock', 'Oracle Corp.', 'ORCL', 125, 78, 65, 75, 30, 'B', getLogo('oracle.com'), 9.0, [], US_COUNTRY, undefined, { sharpe: 1.05, yield: 1.2, expense: 0, assets: '$350B' }),
 ];
 
 // その他 (Crypto / Commodities) 10個
 const others = [
-  createUnit('btc', 'crypto', 'Bitcoin', 'BTC-USD', 65000, 120, 20, 90, 0, 'EX', 'https://cryptologos.cc/logos/bitcoin-btc-logo.png', 25.0, [], DECENTRALIZED, undefined, { sharpe: 1.30, yield: 0, expense: 0, assets: '$1.3T' }),
-  createUnit('eth', 'crypto', 'Ethereum', 'ETH-USD', 3500, 115, 25, 95, 0, 'EX', 'https://cryptologos.cc/logos/ethereum-eth-logo.png', 30.0, [], DECENTRALIZED, undefined, { sharpe: 0.95, yield: 3.5, expense: 0, assets: '$420B' }),
-  createUnit('sol', 'crypto', 'Solana', 'SOL-USD', 150, 125, 10, 100, 0, 'S', 'https://cryptologos.cc/logos/solana-sol-logo.png', 40.0, [], DECENTRALIZED, undefined, { sharpe: 0.70, yield: 6.5, expense: 0, assets: '$75B' }),
-  createUnit('bnb', 'crypto', 'BNB', 'BNB-USD', 550, 100, 30, 80, 0, 'A', 'https://cryptologos.cc/logos/bnb-bnb-logo.png', 20.0, [], DECENTRALIZED, undefined, { sharpe: 0.80, yield: 0, expense: 0, assets: '$85B' }),
-  createUnit('xrp', 'crypto', 'XRP', 'XRP-USD', 0.6, 90, 40, 85, 0, 'B', 'https://cryptologos.cc/logos/xrp-xrp-logo.png', 15.0, [], DECENTRALIZED, undefined, { sharpe: 0.45, yield: 0, expense: 0, assets: '$33B' }),
-  createUnit('gold', 'commodity', 'Gold (COMEX)', 'GC=F', 2350, 40, 120, 70, 0, 'A', 'https://images.unsplash.com/photo-1610224329745-f090ceb72352?auto=format&fit=crop&w=600&q=80', 3.0, [], COMMODITY_GEO, undefined, { sharpe: 0.50, yield: 0, expense: 0.40, assets: '$210B' }),
-  createUnit('silver', 'commodity', 'Silver (COMEX)', 'SI=F', 28, 50, 100, 80, 0, 'B', 'https://images.unsplash.com/photo-1620288627223-53302f4e8c74?auto=format&fit=crop&w=600&q=80', 4.0, [], COMMODITY_GEO, undefined, { sharpe: 0.35, yield: 0, expense: 0.50, assets: '$16B' }),
-  createUnit('oil', 'commodity', 'Crude Oil (WTI)', 'CL=F', 85, 70, 60, 70, 0, 'B', 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80', 2.0, [], COMMODITY_GEO, undefined, { sharpe: 0.20, yield: 0, expense: 0.45, assets: '$3.5B' }),
-  createUnit('gas', 'commodity', 'Natural Gas', 'NG=F', 2.0, 80, 40, 60, 0, 'C', 'https://images.unsplash.com/photo-1612277795421-9bc7706a4a34?auto=format&fit=crop&w=600&q=80', 2.0, [], COMMODITY_GEO, undefined, { sharpe: 0.10, yield: 0, expense: 0.55, assets: '$1.2B' }),
-  createUnit('tnx', 'commodity', '10-Year T-Note Yield', '^TNX', 4.5, 30, 100, 50, 100, 'A', 'https://images.unsplash.com/photo-1606189934376-7bf7d9f78311?auto=format&fit=crop&w=600&q=80', 0.0, [], US_COUNTRY, undefined, { sharpe: 0.60, yield: 4.5, expense: 0.15, assets: '$28T' }),
+  createUnit('btc', 'crypto', 'Bitcoin', 'BTC-USD', 65000, 95, 25, 85, 0, 'S', 'https://cryptologos.cc/logos/bitcoin-btc-logo.png', 25.0, [], DECENTRALIZED, undefined, { sharpe: 1.30, yield: 0, expense: 0, assets: '$1.3T' }),
+  createUnit('eth', 'crypto', 'Ethereum', 'ETH-USD', 3500, 90, 28, 88, 10, 'A', 'https://cryptologos.cc/logos/ethereum-eth-logo.png', 30.0, [], DECENTRALIZED, undefined, { sharpe: 0.95, yield: 3.5, expense: 0, assets: '$420B' }),
+  createUnit('sol', 'crypto', 'Solana', 'SOL-USD', 150, 92, 10, 95, 0, 'B', 'https://cryptologos.cc/logos/solana-sol-logo.png', 40.0, [], DECENTRALIZED, undefined, { sharpe: 0.70, yield: 6.5, expense: 0, assets: '$75B' }),
+  createUnit('bnb', 'crypto', 'BNB', 'BNB-USD', 550, 75, 35, 72, 0, 'B', 'https://cryptologos.cc/logos/bnb-bnb-logo.png', 20.0, [], DECENTRALIZED, undefined, { sharpe: 0.80, yield: 0, expense: 0, assets: '$85B' }),
+  createUnit('xrp', 'crypto', 'XRP', 'XRP-USD', 0.6, 70, 30, 78, 0, 'C', 'https://cryptologos.cc/logos/xrp-xrp-logo.png', 15.0, [], DECENTRALIZED, undefined, { sharpe: 0.45, yield: 0, expense: 0, assets: '$33B' }),
+  createUnit('gold', 'commodity', 'Gold (COMEX)', 'GC=F', 2350, 35, 100, 60, 0, 'A', 'https://images.unsplash.com/photo-1610224329745-f090ceb72352?auto=format&fit=crop&w=600&q=80', 3.0, [], COMMODITY_GEO, undefined, { sharpe: 0.50, yield: 0, expense: 0.40, assets: '$210B' }),
+  createUnit('silver', 'commodity', 'Silver (COMEX)', 'SI=F', 28, 45, 85, 70, 0, 'B', 'https://images.unsplash.com/photo-1620288627223-53302f4e8c74?auto=format&fit=crop&w=600&q=80', 4.0, [], COMMODITY_GEO, undefined, { sharpe: 0.35, yield: 0, expense: 0.50, assets: '$16B' }),
+  createUnit('oil', 'commodity', 'Crude Oil (WTI)', 'CL=F', 85, 65, 45, 60, 0, 'C', 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80', 2.0, [], COMMODITY_GEO, undefined, { sharpe: 0.20, yield: 0, expense: 0.45, assets: '$3.5B' }),
+  createUnit('gas', 'commodity', 'Natural Gas', 'NG=F', 2.0, 72, 20, 50, 0, 'C', 'https://images.unsplash.com/photo-1612277795421-9bc7706a4a34?auto=format&fit=crop&w=600&q=80', 2.0, [], COMMODITY_GEO, undefined, { sharpe: 0.10, yield: 0, expense: 0.55, assets: '$1.2B' }),
+  createUnit('tnx', 'commodity', '10-Year T-Note Yield', '^TNX', 4.5, 20, 100, 40, 100, 'A', 'https://images.unsplash.com/photo-1606189934376-7bf7d9f78311?auto=format&fit=crop&w=600&q=80', 0.0, [], US_COUNTRY, undefined, { sharpe: 0.60, yield: 4.5, expense: 0.15, assets: '$28T' }),
 ];
 
 export const MOCK_UNITS: UnitData[] = [...funds, ...stocks, ...others];
