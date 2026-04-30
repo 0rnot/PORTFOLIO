@@ -569,9 +569,9 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
             </div>
           </div>
           {portfolioHistory1D.length > 0 && (
-            <div style={{ flex: '1 1 300px', height: '200px' }}>
+            <div style={{ flex: '1 1 300px', height: '250px' }}>
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={portfolioHistory1D} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                <AreaChart data={portfolioHistory1D} margin={{ top: 10, right: 5, left: 0, bottom: 10 }}>
                   <defs>
                     <linearGradient id="color1D" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor={todayPL >= 0 ? 'var(--cp-green)' : 'var(--cp-red)'} stopOpacity={0.4} />
@@ -607,10 +607,15 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
       {/* === UNIT SETUP === */}
       <div className="glass-panel" style={{ padding: '14px', marginBottom: '12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-          <div className="section-title">UNIT SETUP</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="section-title">UNIT SETUP</div>
+            <button onClick={handleAdd} style={{ background: 'rgba(0,240,255,0.08)', border: '1px solid rgba(0,240,255,0.25)', color: 'var(--cp-cyan)', cursor: 'pointer', padding: '3px 10px', borderRadius: '2px', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '4px', transition: 'all 0.2s' }}>
+              <Plus size={12} /> ADD
+            </button>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {portfolio.map((item, index) => {
             const unit = units.find(u => u.id === item.unitId);
             if (!unit) return null;
@@ -626,7 +631,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
             const col = unit.type === 'fund' ? 'var(--cp-cyan)' : unit.type === 'stock' ? 'var(--cp-green)' : 'var(--cp-yellow)';
 
             return (
-              <div key={index} style={{ padding: '10px', borderRadius: '2px', position: 'relative', background: 'rgba(0,240,255,0.02)', border: '1px solid var(--cp-border)', overflow: 'hidden' }}>
+              <div key={index} style={{ padding: '12px', borderRadius: '2px', position: 'relative', background: 'rgba(0,240,255,0.02)', border: '1px solid var(--cp-border)', overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '3px', background: col }} />
                 {/* Row 1: Header */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
@@ -646,7 +651,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                 </div>
                 {/* Row 2: Stats (left) + Sparkline (right, fills space) */}
                 <div style={{ display: 'flex', gap: '12px', marginBottom: expandedUnits.has(index) ? '8px' : '0', alignItems: 'center' }}>
-                  <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '200px' }}>
+                  <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '200px' }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                       <span className="neon-label" style={{ width: '50px' }}>PRICE</span>
                       <span style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--cp-text)', fontVariantNumeric: 'tabular-nums' }}>
@@ -673,7 +678,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                       </span>
                     </div>
                   </div>
-                  <div style={{ flex: '1 1 0', height: '100px', minWidth: '150px', position: 'relative' }}>
+                  <div style={{ flex: '1 1 0', height: '125px', minWidth: '150px', position: 'relative' }}>
                     <button onClick={() => setChartMode(chartMode === 'line' ? 'candle' : 'line')} style={{ position: 'absolute', top: 0, right: 0, zIndex: 2, background: 'rgba(0,0,0,0.5)', border: '1px solid var(--cp-border)', color: 'var(--cp-text-sub)', fontSize: '0.55rem', padding: '2px 6px', cursor: 'pointer', borderRadius: '2px', fontWeight: 700, letterSpacing: '0.5px' }}>
                       {chartMode === 'line' ? 'CANDLE' : 'LINE'}
                     </button>
@@ -732,9 +737,6 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
             );
           })}
         </div>
-        <button className="ba-btn" style={{ width: '100%', marginTop: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center' }} onClick={handleAdd}>
-          <Plus size={16} style={{ marginRight: '5px' }} /> ADD UNIT
-        </button>
       </div>
 
       {/* === ANALYTICS GRID === */}
