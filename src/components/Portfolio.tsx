@@ -37,6 +37,11 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
   const [exchangeRate, setExchangeRate] = useState<number>(158);
   const [simYears, setSimYears] = useState(30);
   const [chartMode, setChartMode] = useState<'line' | 'candle'>('line');
+  const [showATH, setShowATH] = useState(false);
+  const [athValue, setAthValue] = useState<number>(() => {
+    const saved = localStorage.getItem('portfolio-ath');
+    return saved ? Number(saved) : 0;
+  });
 
   // 初回および定期的にリアルタイム為替レートを取得
   useEffect(() => {
@@ -267,6 +272,18 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
   const simGain = simFinal ? simFinal.Projected - simFinal.Principal : 0;
   const simGainPct = simFinal && simFinal.Principal > 0 ? (simGain / simFinal.Principal * 100) : 0;
 
+  // === ATH DETECTION ===
+  useEffect(() => {
+    if (aggregatedData.totalValue > 0 && aggregatedData.totalValue > athValue) {
+      setAthValue(aggregatedData.totalValue);
+      localStorage.setItem('portfolio-ath', String(aggregatedData.totalValue));
+      if (athValue > 0) {
+        setShowATH(true);
+        setTimeout(() => setShowATH(false), 4500);
+      }
+    }
+  }, [aggregatedData.totalValue]);
+
   // === MARKET CLOCK ===
   const [now, setNow] = useState(new Date());
   useEffect(() => { const t = setInterval(() => setNow(new Date()), 10000); return () => clearInterval(t); }, []);
@@ -354,8 +371,44 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
   return (
     <div style={{ padding: '0 12px', maxWidth: '1400px', margin: '0 auto' }}>
 
+      {/* ATH Celebration Effect */}
+      {showATH && (
+        <div className="ath-overlay">
+          <div className="ath-badge">
+            <div className="ath-badge-title">NEW ATH</div>
+            <div className="ath-badge-sub">ALL-TIME HIGH REACHED</div>
+            <div style={{ marginTop: '12px', fontSize: 'clamp(1rem, 3vw, 1.8rem)', fontWeight: 900, color: '#39ff14', textShadow: '0 0 20px rgba(57,255,20,0.6)', fontVariantNumeric: 'tabular-nums' }}>
+              ¥{Math.round(aggregatedData.totalValue).toLocaleString()}
+            </div>
+          </div>
+          {/* Particles */}
+          {Array.from({ length: 30 }).map((_, i) => {
+            const angle = (i / 30) * Math.PI * 2;
+            const dist = 150 + Math.random() * 200;
+            const size = 3 + Math.random() * 5;
+            const colors = ['#00f0ff', '#39ff14', '#ff3366', '#f0f', '#fbbf24'];
+            return (
+              <div key={i} className="ath-particle" style={{
+                left: '50%', top: '50%',
+                width: `${size}px`, height: `${size}px`,
+                background: colors[i % colors.length],
+                boxShadow: `0 0 ${size * 2}px ${colors[i % colors.length]}`,
+                '--px': `${Math.cos(angle) * dist}px`,
+                '--py': `${Math.sin(angle) * dist}px`,
+                animationDelay: `${Math.random() * 0.5}s`,
+                animationDuration: `${1.5 + Math.random()}s`,
+              } as React.CSSProperties} />
+            );
+          })}
+          {/* Horizontal Lines */}
+          {[20, 40, 60, 80].map(top => (
+            <div key={top} className="ath-line" style={{ top: `${top}%`, left: 0, animationDelay: `${top / 100}s` }} />
+          ))}
+        </div>
+      )}
+
       {/* === HERO: 評価額 === */}
-      <div className="glass-panel" style={{ padding: '16px', marginBottom: '12px', overflow: 'hidden' }}>
+      <div className={`glass-panel${showATH ? ' ath-hero-glow' : ''}`} style={{ padding: '16px', marginBottom: '12px', overflow: 'hidden' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
           <div style={{ flex: '0 0 auto', minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div className="neon-label" style={{ marginBottom: '4px' }}>TOTAL VALUATION</div>
