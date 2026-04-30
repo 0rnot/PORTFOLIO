@@ -271,8 +271,8 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
 
       {/* === HERO: 評価額 === */}
       <div className="glass-panel" style={{ padding: '16px', marginBottom: '12px', overflow: 'hidden' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
-          <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'stretch' }}>
+          <div style={{ flex: '0 0 auto', minWidth: 0 }}>
             <div className="neon-label" style={{ marginBottom: '4px' }}>TOTAL VALUATION</div>
             <div className="text-cyan" style={{ fontSize: 'clamp(1.6rem, 5vw, 2.8rem)', fontWeight: 900, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
               ¥{Math.round(aggregatedData.totalValue).toLocaleString()}
@@ -287,7 +287,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
             </div>
           </div>
           {portfolioHistory1D.length > 0 && (
-            <div style={{ flex: '1 1 250px', height: '120px', maxWidth: '550px' }}>
+            <div style={{ flex: '1 1 300px', height: '150px' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={portfolioHistory1D} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                   <defs>
@@ -359,35 +359,8 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                     <Trash2 size={14} />
                   </button>
                 </div>
-                {/* Row 2: Stats + Sparkline */}
+                {/* Row 2: Sparkline + Stats */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
-                  <div style={{ flex: '1 1 140px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                      <span className="neon-label">PRICE</span>
-                      <span style={{ fontSize: '0.95rem', fontWeight: 900, color: 'var(--cp-text)', fontVariantNumeric: 'tabular-nums' }}>
-                        {unit.power.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                        <span style={{ fontSize: '0.65rem', marginLeft: '4px', color: isUp ? 'var(--cp-green)' : 'var(--cp-red)' }}>
-                          {isUp ? '▲' : '▼'}{diffPct}%
-                        </span>
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                      <span className="neon-label">評価額</span>
-                      <span style={{ fontSize: '1rem', fontWeight: 900, color: col, fontVariantNumeric: 'tabular-nums' }}>¥{Math.round(currentValue).toLocaleString()}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                      <span className="neon-label">含み益</span>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: gain >= 0 ? 'var(--cp-green)' : 'var(--cp-red)', fontVariantNumeric: 'tabular-nums' }}>
-                        {gain >= 0 ? '+' : ''}¥{Math.round(gain).toLocaleString()} ({gainPct}%)
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                      <span className="neon-label">本日損益</span>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: dayChangeVal >= 0 ? 'var(--cp-green)' : 'var(--cp-red)', fontVariantNumeric: 'tabular-nums' }}>
-                        {dayChangeVal >= 0 ? '+' : ''}¥{Math.round(dayChangeVal).toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
                   <div style={{ flex: '0 0 80px', height: '55px' }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={sparkData}>
@@ -395,6 +368,33 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                         <Area type="monotone" dataKey="v" stroke={col} strokeWidth={1} fill={`url(#us-${unit.id})`} isAnimationActive={false} />
                       </AreaChart>
                     </ResponsiveContainer>
+                  </div>
+                  <div style={{ flex: '1 1 140px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                      <span className="neon-label" style={{ width: '50px' }}>PRICE</span>
+                      <span style={{ fontSize: '0.95rem', fontWeight: 900, color: 'var(--cp-text)', fontVariantNumeric: 'tabular-nums' }}>
+                        {unit.power.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                        <span style={{ fontSize: '0.65rem', marginLeft: '4px', color: isUp ? 'var(--cp-green)' : 'var(--cp-red)' }}>
+                          {isUp ? '▲' : '▼'}{diffPct}%
+                        </span>
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                      <span className="neon-label" style={{ width: '50px' }}>評価額</span>
+                      <span style={{ fontSize: '1rem', fontWeight: 900, color: col, fontVariantNumeric: 'tabular-nums' }}>¥{Math.round(currentValue).toLocaleString()}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                      <span className="neon-label" style={{ width: '50px' }}>含み益</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: gain >= 0 ? 'var(--cp-green)' : 'var(--cp-red)', fontVariantNumeric: 'tabular-nums' }}>
+                        {gain >= 0 ? '+' : ''}¥{Math.round(gain).toLocaleString()} ({gainPct}%)
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                      <span className="neon-label" style={{ width: '50px' }}>本日損益</span>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: dayChangeVal >= 0 ? 'var(--cp-green)' : 'var(--cp-red)', fontVariantNumeric: 'tabular-nums' }}>
+                        {dayChangeVal >= 0 ? '+' : ''}¥{Math.round(dayChangeVal).toLocaleString()}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 {/* Row 3: Inputs 2x2 */}
@@ -423,7 +423,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
       </div>
 
       {/* === ANALYTICS GRID === */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '10px', marginBottom: '12px' }}>
+      <div className="analytics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '12px' }}>
         {/* Radar */}
         <div className="glass-panel" style={{ padding: '14px' }}>
           <div className="section-title" style={{ marginBottom: '8px' }}>STATUS</div>
@@ -528,6 +528,32 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                 </div>
               );
             })}
+          </div>
+        </div>
+
+        {/* RISK METRICS */}
+        <div className="glass-panel" style={{ padding: '14px' }}>
+          <div className="section-title" style={{ marginBottom: '8px' }}>RISK METRICS</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {(() => {
+              const avgSharpe = aggregatedData.items.length > 0 ? aggregatedData.items.reduce((s, i) => s + i.unit.details.sharpeRatio * (i.value / aggregatedData.totalValue), 0) : 0;
+              const avgYield = aggregatedData.items.length > 0 ? aggregatedData.items.reduce((s, i) => s + i.unit.details.dividendYield * (i.value / aggregatedData.totalValue), 0) : 0;
+              const avgCost = aggregatedData.items.length > 0 ? aggregatedData.items.reduce((s, i) => s + i.unit.details.expenseRatio * (i.value / aggregatedData.totalValue), 0) : 0;
+              const monthlyIncome = aggregatedData.totalValue * (avgYield / 100) / 12;
+              return [
+                { label: 'AVG SHARPE', value: avgSharpe.toFixed(2), color: 'var(--cp-cyan)' },
+                { label: 'AVG YIELD', value: `${avgYield.toFixed(2)}%`, color: 'var(--cp-yellow)' },
+                { label: 'AVG COST', value: `${avgCost.toFixed(3)}%`, color: 'var(--cp-magenta)' },
+                { label: 'EST. MONTHLY', value: `¥${Math.round(monthlyIncome).toLocaleString()}`, color: 'var(--cp-green)' },
+                { label: 'INVESTED', value: `¥${Math.round(aggregatedData.totalInvested).toLocaleString()}`, color: 'var(--cp-text-sub)' },
+                { label: 'GAIN RATIO', value: `${unrealizedPct.toFixed(1)}%`, color: unrealizedGain >= 0 ? 'var(--cp-green)' : 'var(--cp-red)' },
+              ].map(m => (
+                <div key={m.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 8px', background: 'rgba(0,240,255,0.02)', borderLeft: `2px solid ${m.color}` }}>
+                  <span className="neon-label">{m.label}</span>
+                  <span style={{ fontWeight: 900, fontSize: '0.85rem', color: m.color, fontVariantNumeric: 'tabular-nums' }}>{m.value}</span>
+                </div>
+              ));
+            })()}
           </div>
         </div>
       </div>
