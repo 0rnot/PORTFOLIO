@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { UnitData, PortfolioItem } from '../types';
-import { fetchCurrentPrices } from '../api';
+import { fetchCurrentPrices, fetchFearGreedIndex } from '../api';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, PieChart, Pie, Cell, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar } from 'recharts';
 import { Plus, Trash2 } from 'lucide-react';
 
@@ -285,18 +285,13 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
     ];
   }, [now]);
 
-  // === FEAR & GREED INDEX ===
-  const fearGreed = useMemo(() => {
-    if (aggregatedData.items.length === 0) return 50;
-    let score = 50;
-    score += todayPLPct * 5;
-    const avgAtk = aggregatedData.radarData.find(r => r.subject === 'ATK')?.A || 50;
-    score += (avgAtk - 70) * 0.3;
-    const volatility = portfolioHistory1D.length > 2 ? portfolioHistory1D.reduce((s, p, i) => i === 0 ? 0 : s + Math.abs(p.value - portfolioHistory1D[i-1].value), 0) / portfolioHistory1D.length : 0;
-    const avgVal = portfolioHistory1D.length > 0 ? portfolioHistory1D.reduce((s, p) => s + p.value, 0) / portfolioHistory1D.length : 1;
-    score -= (volatility / avgVal) * 1000;
-    return Math.max(0, Math.min(100, Math.round(score)));
-  }, [aggregatedData, todayPLPct, portfolioHistory1D]);
+  // === FEAR & GREED INDEX (CNN Real Data) ===
+  const [fearGreed, setFearGreed] = useState(50);
+  useEffect(() => {
+    fetchFearGreedIndex().then(val => { if (val !== null) setFearGreed(val); });
+    const interval = setInterval(() => { fetchFearGreedIndex().then(val => { if (val !== null) setFearGreed(val); }); }, 300000);
+    return () => clearInterval(interval);
+  }, []);
   const fgLabel = fearGreed <= 20 ? 'EXTREME FEAR' : fearGreed <= 40 ? 'FEAR' : fearGreed <= 60 ? 'NEUTRAL' : fearGreed <= 80 ? 'GREED' : 'EXTREME GREED';
   const fgColor = fearGreed <= 20 ? 'var(--cp-red)' : fearGreed <= 40 ? '#f97316' : fearGreed <= 60 ? 'var(--cp-yellow)' : fearGreed <= 80 ? 'var(--cp-green)' : 'var(--cp-cyan)';
 
@@ -360,8 +355,8 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
 
       {/* === HERO: 評価額 === */}
       <div className="glass-panel" style={{ padding: '16px', marginBottom: '12px', overflow: 'hidden' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'stretch' }}>
-          <div style={{ flex: '0 0 auto', minWidth: 0 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
+          <div style={{ flex: '0 0 auto', minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div className="neon-label" style={{ marginBottom: '4px' }}>TOTAL VALUATION</div>
             <div className="text-cyan" style={{ fontSize: 'clamp(1.6rem, 5vw, 2.8rem)', fontWeight: 900, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
               ¥{Math.round(aggregatedData.totalValue).toLocaleString()}
@@ -450,11 +445,12 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                 </div>
                 {/* Row 2: Sparkline + Stats */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
-                  <div style={{ flex: '0 0 80px', height: '55px' }}>
+                  <div style={{ flex: '0 0 100px', height: '65px' }}>
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={sparkData}>
-                        <defs><linearGradient id={`us-${unit.id}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={col} stopOpacity={0.3} /><stop offset="100%" stopColor={col} stopOpacity={0} /></linearGradient></defs>
-                        <Area type="monotone" dataKey="v" stroke={col} strokeWidth={1} fill={`url(#us-${unit.id})`} isAnimationActive={false} />
+                      <AreaChart data={sparkData} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
+                        <defs><linearGradient id={`us-${unit.id}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={col} stopOpacity={0.4} /><stop offset="100%" stopColor={col} stopOpacity={0} /></linearGradient></defs>
+                        <YAxis domain={['dataMin', 'dataMax']} hide />
+                        <Area type="monotone" dataKey="v" stroke={col} strokeWidth={1.5} fill={`url(#us-${unit.id})`} isAnimationActive={false} />
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
@@ -595,10 +591,10 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
         {/* Territory */}
         <div className="glass-panel" style={{ padding: '14px' }}>
           <div className="section-title" style={{ marginBottom: '8px' }}>TERRITORY</div>
-          <div style={{ height: '120px' }}>
+          <div style={{ height: '160px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={aggregatedData.countries} cx="50%" cy="50%" innerRadius="45%" outerRadius="75%" paddingAngle={2} dataKey="weight" stroke="none">
+                <Pie data={aggregatedData.countries} cx="50%" cy="50%" innerRadius="50%" outerRadius="80%" paddingAngle={2} dataKey="weight" stroke="none">
                   {aggregatedData.countries.map((e, i) => <Cell key={i} fill={e.color || COLORS[i % COLORS.length]} />)}
                 </Pie>
                 <Tooltip formatter={(v: any) => `${Number(v).toFixed(1)}%`} contentStyle={{ background: 'var(--cp-surface)', border: '1px solid var(--cp-border)', borderRadius: '2px', color: 'var(--cp-text)' }} />
@@ -719,23 +715,22 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
         {/* Performance Attribution */}
         <div className="glass-panel" style={{ padding: '14px' }}>
           <div className="section-title" style={{ marginBottom: '8px' }}>ATTRIBUTION</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {perfAttribution.map(p => {
-              const maxAbs = Math.max(...perfAttribution.map(x => Math.abs(x.contribution)), 1);
-              const barW = Math.abs(p.contribution) / maxAbs * 100;
-              const isPos = p.contribution >= 0;
-              return (
-                <div key={p.ticker} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7rem' }}>
-                  <span style={{ width: '42px', fontWeight: 700, color: 'var(--cp-text)', flexShrink: 0 }}>{p.ticker}</span>
-                  <div style={{ flex: 1, height: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '1px', position: 'relative', overflow: 'hidden' }}>
-                    <div style={{ position: 'absolute', [isPos ? 'left' : 'right']: 0, top: 0, bottom: 0, width: `${barW}%`, background: isPos ? 'var(--cp-green)' : 'var(--cp-red)', opacity: 0.6, borderRadius: '1px' }} />
-                  </div>
-                  <span style={{ width: '55px', textAlign: 'right', fontWeight: 700, color: isPos ? 'var(--cp-green)' : 'var(--cp-red)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
-                    {isPos ? '+' : ''}¥{Math.round(p.contribution).toLocaleString()}
-                  </span>
-                </div>
-              );
-            })}
+          <div style={{ height: '180px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={perfAttribution} layout="vertical" margin={{ top: 0, right: 10, left: 40, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" horizontal={false} />
+                <XAxis type="number" tick={{ fill: 'var(--cp-text-sub)', fontSize: 8 }} tickFormatter={(v) => `¥${(v/1000).toFixed(0)}k`} />
+                <YAxis type="category" dataKey="ticker" tick={{ fill: 'var(--cp-cyan)', fontSize: 9, fontWeight: 700 }} width={38} />
+                <Tooltip formatter={(v: any) => `¥${Math.round(Number(v)).toLocaleString()}`} contentStyle={{ background: 'var(--cp-surface)', border: '1px solid var(--cp-border)', borderRadius: '2px', color: 'var(--cp-text)', fontSize: '0.75rem' }} />
+                <Bar dataKey="contribution" radius={[0, 2, 2, 0]}>
+                  {perfAttribution.map((entry, idx) => <Cell key={idx} fill={entry.contribution >= 0 ? 'var(--cp-green)' : 'var(--cp-red)'} fillOpacity={0.7} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '0.65rem', color: 'var(--cp-text-sub)' }}>
+            <span>LOSS ←</span>
+            <span>→ GAIN</span>
           </div>
         </div>
       </div>
@@ -745,36 +740,43 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
         {/* Correlation Heatmap */}
         <div className="glass-panel" style={{ padding: '14px' }}>
           <div className="section-title" style={{ marginBottom: '8px' }}>CORRELATION</div>
-          {correlationData.length > 0 && (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: '0.6rem' }}>
+          {correlationData.length > 0 ? (
+            <div style={{ overflowX: 'auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
+              <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: '0.65rem' }}>
                 <thead>
                   <tr>
-                    <th style={{ padding: '3px', color: 'var(--cp-text-sub)' }}></th>
-                    {aggregatedData.items.map(i => <th key={i.unit.ticker} style={{ padding: '3px', color: 'var(--cp-cyan)', fontWeight: 700, textAlign: 'center' }}>{i.unit.ticker.substring(0, 5)}</th>)}
+                    <th style={{ padding: '4px 6px', color: 'var(--cp-text-sub)' }}></th>
+                    {aggregatedData.items.map(i => <th key={i.unit.ticker} style={{ padding: '4px 6px', color: 'var(--cp-cyan)', fontWeight: 700, textAlign: 'center' }}>{i.unit.ticker.substring(0, 5)}</th>)}
                   </tr>
                 </thead>
                 <tbody>
                   {correlationData.map((row, ri) => (
                     <tr key={ri}>
-                      <td style={{ padding: '3px', color: 'var(--cp-cyan)', fontWeight: 700 }}>{aggregatedData.items[ri]?.unit.ticker.substring(0, 5)}</td>
+                      <td style={{ padding: '4px 6px', color: 'var(--cp-cyan)', fontWeight: 700, whiteSpace: 'nowrap' }}>{aggregatedData.items[ri]?.unit.ticker.substring(0, 5)}</td>
                       {row.map((val, ci) => {
                         const abs = Math.abs(val);
                         const bg = val >= 0 ? `rgba(57,255,20,${abs * 0.5})` : `rgba(255,51,102,${abs * 0.5})`;
-                        return <td key={ci} style={{ padding: '3px', textAlign: 'center', background: bg, color: 'var(--cp-text)', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{ri === ci ? '1.0' : val.toFixed(1)}</td>;
+                        return <td key={ci} style={{ padding: '4px 6px', textAlign: 'center', background: bg, color: 'var(--cp-text)', fontWeight: 700, fontVariantNumeric: 'tabular-nums', fontSize: '0.7rem' }}>{ri === ci ? '1.00' : val.toFixed(2)}</td>;
                       })}
                     </tr>
                   ))}
                 </tbody>
               </table>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '10px', fontSize: '0.6rem', color: 'var(--cp-text-sub)' }}>
+                <span><span style={{ display: 'inline-block', width: '10px', height: '10px', background: 'rgba(57,255,20,0.4)', marginRight: '4px', verticalAlign: 'middle' }} />Positive</span>
+                <span><span style={{ display: 'inline-block', width: '10px', height: '10px', background: 'rgba(255,51,102,0.4)', marginRight: '4px', verticalAlign: 'middle' }} />Negative</span>
+              </div>
             </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: 'var(--cp-text-sub)', fontSize: '0.75rem' }}>2銘柄以上追加してください</div>
           )}
         </div>
 
-        {/* Dividend Calendar */}
+        {/* Yield Income */}
         <div className="glass-panel" style={{ padding: '14px' }}>
-          <div className="section-title" style={{ marginBottom: '8px' }}>DIVIDEND CALENDAR</div>
-          <div style={{ height: '200px' }}>
+          <div className="section-title" style={{ marginBottom: '4px' }}>YIELD INCOME</div>
+          <div style={{ fontSize: '0.55rem', color: 'var(--cp-text-sub)', marginBottom: '6px', lineHeight: 1.3 }}>※再投資型ファンドは内部再投資見込額を含む</div>
+          <div style={{ height: '180px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dividendCalendar} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />

@@ -62,3 +62,19 @@ export async function fetchCurrentPrices(tickers: string[]) {
   }));
   return prices;
 }
+
+// CNN Fear & Greed Index
+export async function fetchFearGreedIndex(): Promise<number | null> {
+  try {
+    const res = await fetch('https://corsproxy.io/?https://production.dataviz.cnn.io/index/fearandgreed/graphdata');
+    if (!res.ok) return null;
+    const json = await res.json();
+    if (json?.fear_and_greed?.score) {
+      return Math.round(json.fear_and_greed.score);
+    }
+    return null;
+  } catch (e) {
+    console.error('Failed to fetch Fear & Greed Index:', e);
+    return null;
+  }
+}
