@@ -287,17 +287,20 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
             </div>
           </div>
           {portfolioHistory1D.length > 0 && (
-            <div style={{ flex: '1 1 180px', height: '80px', maxWidth: '400px' }}>
+            <div style={{ flex: '1 1 250px', height: '120px', maxWidth: '550px' }}>
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={portfolioHistory1D}>
+                <AreaChart data={portfolioHistory1D} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="color1D" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--cp-cyan)" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="var(--cp-cyan)" stopOpacity={0} />
+                      <stop offset="0%" stopColor={todayPL >= 0 ? 'var(--cp-green)' : 'var(--cp-red)'} stopOpacity={0.4} />
+                      <stop offset="100%" stopColor={todayPL >= 0 ? 'var(--cp-green)' : 'var(--cp-red)'} stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <YAxis domain={['dataMin', 'dataMax']} hide />
-                  <Area type="monotone" dataKey="value" stroke="var(--cp-cyan)" strokeWidth={1.5} fill="url(#color1D)" isAnimationActive={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                  <XAxis dataKey="time" tick={{ fill: 'var(--cp-text-sub)', fontSize: 8 }} interval="preserveStartEnd" />
+                  <YAxis domain={['dataMin', 'dataMax']} tick={{ fill: 'var(--cp-text-sub)', fontSize: 8 }} width={50} tickFormatter={(v) => `¥${(v / 10000).toFixed(0)}万`} />
+                  <Tooltip formatter={(v: any) => `¥${Number(v).toLocaleString()}`} contentStyle={{ background: 'var(--cp-surface)', border: '1px solid var(--cp-border)', borderRadius: '2px', color: 'var(--cp-text)', fontSize: '0.75rem' }} />
+                  <Area type="monotone" dataKey="value" stroke={todayPL >= 0 ? 'var(--cp-green)' : 'var(--cp-red)'} strokeWidth={1.5} fill="url(#color1D)" isAnimationActive={false} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -429,7 +432,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={aggregatedData.radarData}>
                 <PolarGrid stroke="rgba(0,240,255,0.15)" />
                 <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--cp-text-sub)', fontSize: 10 }} />
-                <Radar dataKey="A" stroke="var(--cp-cyan)" strokeWidth={2} fill="var(--cp-cyan)" fillOpacity={0.2} />
+                <Radar dataKey="A" stroke="var(--cp-cyan)" strokeWidth={2} fill="var(--cp-cyan)" fillOpacity={0.45} />
               </RadarChart>
             </ResponsiveContainer>
           </div>
@@ -499,6 +502,32 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                 <span style={{ color: 'var(--cp-cyan)', fontWeight: 700 }}>{c.weight.toFixed(1)}%</span>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* FUND DETAILS */}
+        <div className="glass-panel" style={{ padding: '14px' }}>
+          <div className="section-title" style={{ marginBottom: '8px' }}>FUND DETAILS</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {aggregatedData.items.map((item, idx) => {
+              const u = item.unit;
+              const g = item.value - Number(item.item.investedPrincipal);
+              const gPct = Number(item.item.investedPrincipal) > 0 ? (g / Number(item.item.investedPrincipal) * 100) : 0;
+              return (
+                <div key={idx} style={{ padding: '8px', background: 'rgba(0,240,255,0.02)', borderLeft: `2px solid ${COLORS[idx % COLORS.length]}`, display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--cp-text)' }}>{u.ticker}</span>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: g >= 0 ? 'var(--cp-green)' : 'var(--cp-red)' }}>{g >= 0 ? '+' : ''}{gPct.toFixed(1)}%</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px', fontSize: '0.65rem' }}>
+                    <div><span style={{ color: 'var(--cp-text-sub)' }}>Sharpe: </span><span style={{ color: 'var(--cp-cyan)' }}>{u.details.sharpeRatio.toFixed(2)}</span></div>
+                    <div><span style={{ color: 'var(--cp-text-sub)' }}>Yield: </span><span style={{ color: 'var(--cp-yellow)' }}>{u.details.dividendYield.toFixed(1)}%</span></div>
+                    <div><span style={{ color: 'var(--cp-text-sub)' }}>Cost: </span><span style={{ color: 'var(--cp-magenta)' }}>{u.details.expenseRatio.toFixed(2)}%</span></div>
+                    <div><span style={{ color: 'var(--cp-text-sub)' }}>AUM: </span><span style={{ color: 'var(--cp-text)' }}>{u.details.netAssets}</span></div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
