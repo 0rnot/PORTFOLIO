@@ -66,15 +66,30 @@ export async function fetchCurrentPrices(tickers: string[]) {
 // CNN Fear & Greed Index
 export async function fetchFearGreedIndex(): Promise<number | null> {
   try {
-    const res = await fetch('https://corsproxy.io/?https://production.dataviz.cnn.io/index/fearandgreed/graphdata');
-    if (!res.ok) return null;
+    // CNN endpoint requires a start date
+    const today = new Date().toISOString().split('T')[0];
+    const res = await fetch(`https://corsproxy.io/?https://production.dataviz.cnn.io/index/fearandgreed/graphdata/${today}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
-    if (json?.fear_and_greed?.score) {
+    // Current score is in fear_and_greed.score or the latest historical point
+    if (json?.fear_and_greed?.score != null) {
       return Math.round(json.fear_and_greed.score);
+    }
+    if (json?.fear_and_greed_historical?.data?.length > 0) {
+      const latest = json.fear_and_greed_historical.data[json.fear_and_greed_historical.data.length - 1];
+      return Math.round(latest.y);
     }
     return null;
   } catch (e) {
-    console.error('Failed to fetch Fear & Greed Index:', e);
+    console.warn('CNN F&G fetch failed, trying alternative:', e);
+    // Fallback: alternative.me crypto F&G (different index but still useful)
+    try {
+      const res2 = await fetch('https://api.alternative.me/fng/?limit=1');
+      if (res2.ok) {
+        const json2 = await res2.json();
+        if (json2?.data?.[0]?.value) return Number(json2.data[0].value);
+      }
+    } catch { /* silent */ }
     return null;
   }
 }

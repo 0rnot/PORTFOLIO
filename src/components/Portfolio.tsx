@@ -272,74 +272,143 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
   const simGain = simFinal ? simFinal.Projected - simFinal.Principal : 0;
   const simGainPct = simFinal && simFinal.Principal > 0 ? (simGain / simFinal.Principal * 100) : 0;
 
-  // === ATH SOUND ===
+  // === ATH SOUND (Euphoria Edition) ===
   const playATHSound = () => {
     try {
       const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const master = ctx.createGain();
-      master.gain.setValueAtTime(0.3, ctx.currentTime);
-      master.connect(ctx.destination);
+      master.gain.setValueAtTime(0.35, ctx.currentTime);
+      const compressor = ctx.createDynamicsCompressor();
+      compressor.threshold.setValueAtTime(-12, ctx.currentTime);
+      compressor.ratio.setValueAtTime(4, ctx.currentTime);
+      master.connect(compressor).connect(ctx.destination);
 
-      // Bass impact
+      // Helper: create reverb-like delay
+      const addDelay = (node: AudioNode, time: number, feedback: number) => {
+        const delay = ctx.createDelay();
+        const fb = ctx.createGain();
+        delay.delayTime.setValueAtTime(time, ctx.currentTime);
+        fb.gain.setValueAtTime(feedback, ctx.currentTime);
+        node.connect(delay).connect(fb).connect(delay);
+        delay.connect(master);
+      };
+
+      // 1. SUB BASS IMPACT (cinematic boom)
       const bass = ctx.createOscillator();
       const bassGain = ctx.createGain();
       bass.type = 'sine';
-      bass.frequency.setValueAtTime(80, ctx.currentTime);
-      bass.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.8);
-      bassGain.gain.setValueAtTime(0.5, ctx.currentTime);
-      bassGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1);
+      bass.frequency.setValueAtTime(100, ctx.currentTime);
+      bass.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 1.2);
+      bassGain.gain.setValueAtTime(0.7, ctx.currentTime);
+      bassGain.gain.linearRampToValueAtTime(0.8, ctx.currentTime + 0.05);
+      bassGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
       bass.connect(bassGain).connect(master);
       bass.start(ctx.currentTime);
-      bass.stop(ctx.currentTime + 1);
+      bass.stop(ctx.currentTime + 1.5);
 
-      // Rising arpeggio (C5 → E5 → G5 → C6 → E6)
-      const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
-      notes.forEach((freq, i) => {
+      // 2. WHITE NOISE SWOOSH (impact texture)
+      const noiseLen = ctx.sampleRate * 1.5;
+      const noiseBuf = ctx.createBuffer(1, noiseLen, ctx.sampleRate);
+      const noiseData = noiseBuf.getChannelData(0);
+      for (let i = 0; i < noiseLen; i++) noiseData[i] = Math.random() * 2 - 1;
+      const noise = ctx.createBufferSource();
+      noise.buffer = noiseBuf;
+      const noiseGain = ctx.createGain();
+      const noiseFilter = ctx.createBiquadFilter();
+      noiseFilter.type = 'highpass';
+      noiseFilter.frequency.setValueAtTime(2000, ctx.currentTime);
+      noiseFilter.frequency.exponentialRampToValueAtTime(8000, ctx.currentTime + 0.5);
+      noiseGain.gain.setValueAtTime(0.15, ctx.currentTime);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+      noise.connect(noiseFilter).connect(noiseGain).connect(master);
+      noise.start(ctx.currentTime);
+      noise.stop(ctx.currentTime + 1);
+
+      // 3. RISING ARPEGGIO (C4 → E4 → G4 → B4 → C5 → E5 → G5 → C6)
+      const arpNotes = [261.63, 329.63, 392.00, 493.88, 523.25, 659.25, 783.99, 1046.50];
+      arpNotes.forEach((freq, i) => {
+        // Main tone
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(freq, ctx.currentTime);
-        const t = ctx.currentTime + i * 0.12;
+        const t = ctx.currentTime + 0.05 + i * 0.09;
         gain.gain.setValueAtTime(0, t);
-        gain.gain.linearRampToValueAtTime(0.25, t + 0.03);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+        gain.gain.linearRampToValueAtTime(0.2, t + 0.02);
+        gain.gain.setValueAtTime(0.18, t + 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
         osc.connect(gain).connect(master);
         osc.start(t);
-        osc.stop(t + 0.5);
+        osc.stop(t + 0.7);
+        // Octave harmonic
+        const h = ctx.createOscillator();
+        const hg = ctx.createGain();
+        h.type = 'sine';
+        h.frequency.setValueAtTime(freq * 2, ctx.currentTime);
+        hg.gain.setValueAtTime(0, t);
+        hg.gain.linearRampToValueAtTime(0.06, t + 0.02);
+        hg.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+        h.connect(hg).connect(master);
+        h.start(t);
+        h.stop(t + 0.5);
       });
 
-      // Shimmer / sparkle
-      const shimmer = ctx.createOscillator();
-      const shimGain = ctx.createGain();
-      const shimFilter = ctx.createBiquadFilter();
-      shimmer.type = 'sawtooth';
-      shimmer.frequency.setValueAtTime(2093, ctx.currentTime + 0.5);
-      shimFilter.type = 'bandpass';
-      shimFilter.frequency.setValueAtTime(3000, ctx.currentTime);
-      shimFilter.Q.setValueAtTime(5, ctx.currentTime);
-      shimGain.gain.setValueAtTime(0, ctx.currentTime + 0.5);
-      shimGain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.6);
-      shimGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2);
-      shimmer.connect(shimFilter).connect(shimGain).connect(master);
-      shimmer.start(ctx.currentTime + 0.5);
-      shimmer.stop(ctx.currentTime + 2);
+      // 4. SUPERSAW SHIMMER (detuned for width)
+      const shimStart = ctx.currentTime + 0.6;
+      [-7, -3, 0, 3, 7].forEach(detune => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(1046.50, shimStart);
+        osc.detune.setValueAtTime(detune, shimStart);
+        const lp = ctx.createBiquadFilter();
+        lp.type = 'lowpass';
+        lp.frequency.setValueAtTime(4000, shimStart);
+        lp.frequency.linearRampToValueAtTime(8000, shimStart + 0.5);
+        lp.frequency.exponentialRampToValueAtTime(2000, shimStart + 2);
+        gain.gain.setValueAtTime(0, shimStart);
+        gain.gain.linearRampToValueAtTime(0.04, shimStart + 0.3);
+        gain.gain.exponentialRampToValueAtTime(0.001, shimStart + 2.5);
+        osc.connect(lp).connect(gain).connect(master);
+        osc.start(shimStart);
+        osc.stop(shimStart + 2.5);
+      });
 
-      // Final chord (power chord)
-      [523.25, 659.25, 783.99].forEach(freq => {
+      // 5. EPIC RESOLUTION CHORD (Cmaj7 → wide voicing with reverb)
+      const chordStart = ctx.currentTime + 0.85;
+      const chordFreqs = [261.63, 329.63, 392.00, 493.88, 523.25, 659.25];
+      chordFreqs.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = i < 2 ? 'triangle' : 'sine';
+        osc.frequency.setValueAtTime(freq, chordStart);
+        gain.gain.setValueAtTime(0, chordStart);
+        gain.gain.linearRampToValueAtTime(0.1, chordStart + 0.08);
+        gain.gain.setValueAtTime(0.09, chordStart + 0.5);
+        gain.gain.exponentialRampToValueAtTime(0.001, chordStart + 3.5);
+        osc.connect(gain).connect(master);
+        addDelay(gain, 0.15, 0.2);
+        osc.start(chordStart);
+        osc.stop(chordStart + 3.5);
+      });
+
+      // 6. FINAL SPARKLE (high bell tones)
+      const sparkStart = ctx.currentTime + 1.2;
+      [2093, 2637, 3136, 3520].forEach((freq, i) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, ctx.currentTime);
-        const t = ctx.currentTime + 0.7;
+        osc.frequency.setValueAtTime(freq, sparkStart);
+        const t = sparkStart + i * 0.15;
         gain.gain.setValueAtTime(0, t);
-        gain.gain.linearRampToValueAtTime(0.15, t + 0.05);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 2.5);
+        gain.gain.linearRampToValueAtTime(0.08, t + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
         osc.connect(gain).connect(master);
         osc.start(t);
-        osc.stop(t + 2.5);
+        osc.stop(t + 1.5);
       });
 
-      setTimeout(() => ctx.close(), 4000);
+      setTimeout(() => ctx.close(), 5000);
     } catch (e) {
       console.warn('ATH sound failed:', e);
     }
