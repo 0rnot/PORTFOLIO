@@ -272,6 +272,79 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
   const simGain = simFinal ? simFinal.Projected - simFinal.Principal : 0;
   const simGainPct = simFinal && simFinal.Principal > 0 ? (simGain / simFinal.Principal * 100) : 0;
 
+  // === ATH SOUND ===
+  const playATHSound = () => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const master = ctx.createGain();
+      master.gain.setValueAtTime(0.3, ctx.currentTime);
+      master.connect(ctx.destination);
+
+      // Bass impact
+      const bass = ctx.createOscillator();
+      const bassGain = ctx.createGain();
+      bass.type = 'sine';
+      bass.frequency.setValueAtTime(80, ctx.currentTime);
+      bass.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.8);
+      bassGain.gain.setValueAtTime(0.5, ctx.currentTime);
+      bassGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1);
+      bass.connect(bassGain).connect(master);
+      bass.start(ctx.currentTime);
+      bass.stop(ctx.currentTime + 1);
+
+      // Rising arpeggio (C5 → E5 → G5 → C6 → E6)
+      const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        const t = ctx.currentTime + i * 0.12;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.25, t + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+        osc.connect(gain).connect(master);
+        osc.start(t);
+        osc.stop(t + 0.5);
+      });
+
+      // Shimmer / sparkle
+      const shimmer = ctx.createOscillator();
+      const shimGain = ctx.createGain();
+      const shimFilter = ctx.createBiquadFilter();
+      shimmer.type = 'sawtooth';
+      shimmer.frequency.setValueAtTime(2093, ctx.currentTime + 0.5);
+      shimFilter.type = 'bandpass';
+      shimFilter.frequency.setValueAtTime(3000, ctx.currentTime);
+      shimFilter.Q.setValueAtTime(5, ctx.currentTime);
+      shimGain.gain.setValueAtTime(0, ctx.currentTime + 0.5);
+      shimGain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.6);
+      shimGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2);
+      shimmer.connect(shimFilter).connect(shimGain).connect(master);
+      shimmer.start(ctx.currentTime + 0.5);
+      shimmer.stop(ctx.currentTime + 2);
+
+      // Final chord (power chord)
+      [523.25, 659.25, 783.99].forEach(freq => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        const t = ctx.currentTime + 0.7;
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.15, t + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 2.5);
+        osc.connect(gain).connect(master);
+        osc.start(t);
+        osc.stop(t + 2.5);
+      });
+
+      setTimeout(() => ctx.close(), 4000);
+    } catch (e) {
+      console.warn('ATH sound failed:', e);
+    }
+  };
+
   // === ATH DETECTION ===
   useEffect(() => {
     if (aggregatedData.totalValue > 0 && aggregatedData.totalValue > athValue) {
@@ -279,6 +352,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
       localStorage.setItem('portfolio-ath', String(aggregatedData.totalValue));
       if (athValue > 0) {
         setShowATH(true);
+        playATHSound();
         setTimeout(() => setShowATH(false), 4500);
       }
     }
