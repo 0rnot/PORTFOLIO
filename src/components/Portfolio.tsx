@@ -571,7 +571,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
           {portfolioHistory1D.length > 0 && (
             <div style={{ flex: '1 1 300px', height: '250px' }}>
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={portfolioHistory1D} margin={{ top: 10, right: 5, left: 0, bottom: 10 }}>
+                <AreaChart data={portfolioHistory1D} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="color1D" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor={todayPL >= 0 ? 'var(--cp-green)' : 'var(--cp-red)'} stopOpacity={0.4} />
@@ -579,7 +579,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
-                  <XAxis dataKey="time" tick={{ fill: 'var(--cp-text-sub)', fontSize: 8 }} interval="preserveStartEnd" />
+                  <XAxis dataKey="time" tick={{ fill: 'var(--cp-text-sub)', fontSize: 8 }} interval="preserveStartEnd" height={20} tickMargin={2} />
                   <YAxis domain={['dataMin', 'dataMax']} tick={{ fill: 'var(--cp-text-sub)', fontSize: 8 }} width={50} tickFormatter={(v) => `¥${(v / 10000).toFixed(0)}万`} />
                   <Tooltip formatter={(v: any) => `¥${Number(v).toLocaleString()}`} contentStyle={{ background: 'var(--cp-surface)', border: '1px solid var(--cp-border)', borderRadius: '2px', color: 'var(--cp-text)', fontSize: '0.75rem' }} />
                   <Area type="monotone" dataKey="value" stroke={todayPL >= 0 ? 'var(--cp-green)' : 'var(--cp-red)'} strokeWidth={1.5} fill="url(#color1D)" isAnimationActive={false} />
