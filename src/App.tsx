@@ -163,8 +163,8 @@ function App() {
       <header className="ba-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
         <h1 className="ba-header-title">{getPageTitle()}</h1>
         <nav style={{ display: 'flex', gap: '12px', flexShrink: 0 }}>
-          <Link to="/" className="text-white" style={{ fontWeight: 'bold', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>DASHBOARD</Link>
-          <Link to="/portfolio" className="text-white" style={{ fontWeight: 'bold', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>PORTFOLIO</Link>
+          <Link to="/" style={{ fontWeight: 900, fontSize: '0.75rem', color: 'var(--cp-cyan)', letterSpacing: '2px', textTransform: 'uppercase' as const, whiteSpace: 'nowrap', textDecoration: 'none' }}>DASH</Link>
+          <Link to="/portfolio" style={{ fontWeight: 900, fontSize: '0.75rem', color: 'var(--cp-magenta)', letterSpacing: '2px', textTransform: 'uppercase' as const, whiteSpace: 'nowrap', textDecoration: 'none' }}>PORTFOLIO</Link>
         </nav>
       </header>
       <main className="main-content">
