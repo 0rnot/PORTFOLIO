@@ -651,16 +651,30 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                 </div>
                 {/* Row 2: Stats (left) + Sparkline (right, fills space) */}
                 <div style={{ display: 'flex', gap: '12px', marginBottom: expandedUnits.has(index) ? '8px' : '0', alignItems: 'center' }}>
-                  <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '200px' }}>
+                  <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '220px' }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                       <span className="neon-label" style={{ width: '50px' }}>PRICE</span>
                       <span style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--cp-text)', fontVariantNumeric: 'tabular-nums' }}>
-                        {unit.power.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                        {unit.type === 'fund' ? '' : '$'}{unit.power.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                         <span style={{ fontSize: '0.7rem', marginLeft: '4px', color: isUp ? 'var(--cp-green)' : 'var(--cp-red)' }}>
                           {isUp ? '▲' : '▼'}{diffPct}%
                         </span>
                       </span>
                     </div>
+                    {(() => {
+                      const rawDiff = unit.power - startOfDay;
+                      const rawDiffStr = unit.type === 'fund'
+                        ? `${rawDiff >= 0 ? '+' : ''}${rawDiff.toFixed(2)}`
+                        : `${rawDiff >= 0 ? '+' : ''}$${Math.abs(rawDiff).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+                      return (
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                          <span className="neon-label" style={{ width: '50px' }}>指数変動</span>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: rawDiff >= 0 ? 'var(--cp-green)' : 'var(--cp-red)', fontVariantNumeric: 'tabular-nums' }}>
+                            {rawDiff < 0 && unit.type !== 'fund' ? '-' : ''}{rawDiffStr} ({diffPct}%)
+                          </span>
+                        </div>
+                      );
+                    })()}
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                       <span className="neon-label" style={{ width: '50px' }}>評価額</span>
                       <span style={{ fontSize: '1.1rem', fontWeight: 900, color: col, fontVariantNumeric: 'tabular-nums' }}>¥{Math.round(currentValue).toLocaleString()}</span>
