@@ -35,7 +35,8 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
 
   const [baseExchangeRate, setBaseExchangeRate] = useState<number>(158);
   const [exchangeRate, setExchangeRate] = useState<number>(158);
-  const [simYears, setSimYears] = useState<number>(20);
+  const [simYears, setSimYears] = useState(30);
+  const [chartMode, setChartMode] = useState<'line' | 'candle'>('line');
 
   // 初回および定期的にリアルタイム為替レートを取得
   useEffect(() => {
@@ -424,7 +425,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
             const gain = currentValue - Number(item.investedPrincipal);
             const gainPct = Number(item.investedPrincipal) > 0 ? (gain / Number(item.investedPrincipal) * 100).toFixed(2) : '0.00';
             const dayChangeVal = calcUnitValue(unit, item.quantity) - calcUnitValue(unit, item.quantity, startOfDay);
-            const sparkData = unit.history['1D'].slice(-20).map(d => ({ v: d.close }));
+            const sparkData = unit.history['1D'].slice(-20).map((d, i) => ({ v: d.close, open: d.open, high: d.high, low: d.low, close: d.close, idx: i }));
             const col = unit.type === 'fund' ? 'var(--cp-cyan)' : unit.type === 'stock' ? 'var(--cp-green)' : 'var(--cp-yellow)';
 
             return (
@@ -443,18 +444,9 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                     <Trash2 size={14} />
                   </button>
                 </div>
-                {/* Row 2: Sparkline + Stats */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
-                  <div style={{ flex: '0 0 100px', height: '65px' }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={sparkData} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
-                        <defs><linearGradient id={`us-${unit.id}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={col} stopOpacity={0.4} /><stop offset="100%" stopColor={col} stopOpacity={0} /></linearGradient></defs>
-                        <YAxis domain={['dataMin', 'dataMax']} hide />
-                        <Area type="monotone" dataKey="v" stroke={col} strokeWidth={1.5} fill={`url(#us-${unit.id})`} isAnimationActive={false} />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div style={{ flex: '1 1 140px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {/* Row 2: Stats (left) + Sparkline (right, fills space) */}
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '8px', alignItems: 'center' }}>
+                  <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '180px' }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                       <span className="neon-label" style={{ width: '50px' }}>PRICE</span>
                       <span style={{ fontSize: '0.95rem', fontWeight: 900, color: 'var(--cp-text)', fontVariantNumeric: 'tabular-nums' }}>
@@ -480,6 +472,42 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
                         {dayChangeVal >= 0 ? '+' : ''}¥{Math.round(dayChangeVal).toLocaleString()}
                       </span>
                     </div>
+                  </div>
+                  <div style={{ flex: '1 1 0', height: '80px', minWidth: '120px', position: 'relative' }}>
+                    <button onClick={() => setChartMode(chartMode === 'line' ? 'candle' : 'line')} style={{ position: 'absolute', top: 0, right: 0, zIndex: 2, background: 'rgba(0,0,0,0.5)', border: '1px solid var(--cp-border)', color: 'var(--cp-text-sub)', fontSize: '0.55rem', padding: '2px 6px', cursor: 'pointer', borderRadius: '2px', fontWeight: 700, letterSpacing: '0.5px' }}>
+                      {chartMode === 'line' ? 'CANDLE' : 'LINE'}
+                    </button>
+                    <ResponsiveContainer width="100%" height="100%">
+                      {chartMode === 'line' ? (
+                        <AreaChart data={sparkData} margin={{ top: 4, right: 4, left: 4, bottom: 4 }}>
+                          <defs><linearGradient id={`us-${unit.id}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={col} stopOpacity={0.4} /><stop offset="100%" stopColor={col} stopOpacity={0} /></linearGradient></defs>
+                          <YAxis domain={['dataMin', 'dataMax']} hide />
+                          <Area type="monotone" dataKey="v" stroke={col} strokeWidth={1.5} fill={`url(#us-${unit.id})`} isAnimationActive={false} />
+                        </AreaChart>
+                      ) : (() => {
+                        const cData = sparkData;
+                        const maxH = Math.max(...cData.map(d => d.high));
+                        const minL = Math.min(...cData.map(d => d.low));
+                        const rng = maxH - minL || 1;
+                        const yS = (v: number) => 4 + (1 - (v - minL) / rng) * 68;
+                        const bW = Math.max(Math.floor(100 / cData.length * 0.6), 2);
+                        return (
+                          <svg width="100%" height="100%" viewBox={`0 0 ${cData.length * (bW + 2) + 8} 76`} preserveAspectRatio="none" style={{ display: 'block' }}>
+                            {cData.map((d, ci) => {
+                              const isUp = d.close >= d.open;
+                              const clr = isUp ? '#39ff14' : '#ff3366';
+                              const cx = 4 + ci * (bW + 2) + bW / 2;
+                              return (
+                                <g key={ci}>
+                                  <line x1={cx} y1={yS(d.high)} x2={cx} y2={yS(d.low)} stroke={clr} strokeWidth={0.8} />
+                                  <rect x={cx - bW / 2} y={yS(Math.max(d.open, d.close))} width={bW} height={Math.max(yS(Math.min(d.open, d.close)) - yS(Math.max(d.open, d.close)), 0.5)} fill={clr} fillOpacity={isUp ? 0.35 : 0.85} stroke={clr} strokeWidth={0.4} />
+                                </g>
+                              );
+                            })}
+                          </svg>
+                        );
+                      })()}
+                    </ResponsiveContainer>
                   </div>
                 </div>
                 {/* Row 3: Inputs 2x2 */}
