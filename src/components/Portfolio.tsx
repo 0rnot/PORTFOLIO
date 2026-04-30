@@ -277,7 +277,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
             <div className="text-cyan" style={{ fontSize: 'clamp(1.6rem, 5vw, 2.8rem)', fontWeight: 900, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
               ¥{Math.round(aggregatedData.totalValue).toLocaleString()}
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '8px', fontSize: '0.75rem', fontWeight: 700 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px', fontSize: '0.75rem', fontWeight: 700 }}>
               <span style={{ color: unrealizedGain >= 0 ? 'var(--cp-green)' : 'var(--cp-red)' }}>
                 含み益 {unrealizedGain >= 0 ? '+' : ''}¥{Math.round(unrealizedGain).toLocaleString()} ({unrealizedPct.toFixed(2)}%)
               </span>
@@ -287,7 +287,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
             </div>
           </div>
           {portfolioHistory1D.length > 0 && (
-            <div style={{ flex: '1 1 300px', height: '150px' }}>
+            <div style={{ flex: '1 1 300px', height: '200px' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={portfolioHistory1D} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                   <defs>
@@ -473,12 +473,33 @@ const Portfolio: React.FC<PortfolioProps> = ({ units }) => {
         <div className="glass-panel" style={{ padding: '14px' }}>
           <div className="section-title" style={{ marginBottom: '8px' }}>TOP HOLDINGS</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto', maxHeight: '280px' }}>
-            {aggregatedData.topComponents.map((comp, i) => (
-              <div key={comp.ticker} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', background: 'rgba(0,240,255,0.02)', borderLeft: `2px solid ${comp.color || 'var(--cp-cyan)'}`, fontSize: '0.75rem' }}>
-                <span><span style={{ color: 'var(--cp-text)', fontWeight: 700, marginRight: '6px' }}>{i + 1}.</span>{comp.ticker} <span style={{ color: 'var(--cp-text-sub)', fontSize: '0.65rem' }}>{comp.name.substring(0, 10)}</span></span>
-                <span style={{ color: 'var(--cp-cyan)', fontWeight: 700 }}>{comp.weight.toFixed(1)}%</span>
-              </div>
-            ))}
+            {aggregatedData.topComponents.map((comp, i) => {
+              const stockUnit = units.find(u => u.ticker === comp.ticker);
+              let chgPct = 0;
+              let price = 0;
+              if (stockUnit) {
+                const hist = stockUnit.history['1D'];
+                const open = hist[0]?.open || stockUnit.power;
+                price = stockUnit.power;
+                chgPct = open > 0 ? ((price - open) / open) * 100 : 0;
+              }
+              const isUp = chgPct >= 0;
+              return (
+                <div key={comp.ticker} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 8px', background: 'rgba(0,240,255,0.02)', borderLeft: `2px solid ${comp.color || 'var(--cp-cyan)'}`, fontSize: '0.75rem' }}>
+                  <span style={{ flex: '1 1 auto', minWidth: 0 }}>
+                    <span style={{ color: 'var(--cp-text)', fontWeight: 700, marginRight: '4px' }}>{i + 1}.</span>
+                    {comp.ticker}
+                    <span style={{ color: 'var(--cp-text-sub)', fontSize: '0.6rem', marginLeft: '4px' }}>{comp.name.substring(0, 8)}</span>
+                  </span>
+                  {stockUnit && (
+                    <span style={{ fontSize: '0.65rem', fontWeight: 700, color: isUp ? 'var(--cp-green)' : 'var(--cp-red)', marginRight: '8px', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                      {isUp ? '▲' : '▼'}{Math.abs(chgPct).toFixed(2)}%
+                    </span>
+                  )}
+                  <span style={{ color: 'var(--cp-cyan)', fontWeight: 700, whiteSpace: 'nowrap' }}>{comp.weight.toFixed(1)}%</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
